@@ -3,9 +3,10 @@ import express from "express";
 import cors from "cors";
 
 import connectDB from "./database/database.js";
-import User from "./models/User.js";
 import userRoutes from './routes/userRoutes.js';
 import neighborhoodRoutes from './routes/neighborhoodRoutes.js';
+
+import dashboardRoutes from './routes/dashboardRoutes.js';
 
 dotenv.config();
 
@@ -25,10 +26,9 @@ connectDB();
 app.use('/api/users', userRoutes);
 
 //To fetch neighborhoods from the database
-app.use('/api/neighborhood', (req, res, next) => {
-    console.log('Neighborhoods route accessed');
-    next();
-  }, neighborhoodRoutes);
+app.use('/api/neighborhoods', neighborhoodRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
 
 const PORT = process.env.PORT || 8000;
 

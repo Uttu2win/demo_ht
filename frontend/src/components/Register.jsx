@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { registerUser } from '../services/api';
-import axios from 'axios';
+import { fetchNeighborhoods, registerUser } from '../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,19 +10,19 @@ const Register = () => {
     neighborhoodId: '',
   });
   const [neighborhoods, setNeighborhoods] = useState([]);
+  const navigate = useNavigate();
 
-  // Fetch neighborhoods on component mount
   useEffect(() => {
-    const fetchNeighborhoods = async () => {
+    const getNeighborhoods = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/neighborhoods');
-        setNeighborhoods(response.data);
+        const response = await fetchNeighborhoods(); // Fetch data
+        setNeighborhoods(response.data); // Update state
       } catch (error) {
-        console.error('Error fetching neighborhoods:', error);
+        console.error('Error fetching neighborhoods:', error.response?.data?.message || error.message);
       }
     };
 
-    fetchNeighborhoods();
+    getNeighborhoods();
   }, []);
 
   const handleChange = (e) => {
@@ -32,8 +32,9 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await registerUser(formData);
-      alert(response.data.message);
+      await registerUser(formData);
+      alert('Registration successful');
+      navigate('/login');
     } catch (error) {
       alert(error.response?.data?.message || 'Registration failed');
     }

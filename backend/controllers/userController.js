@@ -1,5 +1,5 @@
-import User from '../models/User.js';
-import Neighborhood from '../models/Neighborhood.js';
+import UserModel from '../models/User.js';
+import NeighborhoodModel from '../models/Neighborhood.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -11,14 +11,14 @@ export const registerUser = async (req, res) => {
   }
 
   try {
-    const neighborhood = await Neighborhood.findById(neighborhoodId);
+    const neighborhood = await NeighborhoodModel.findById(neighborhoodId);
     if (!neighborhood) {
       return res.status(400).json({ message: 'Invalid neighborhood ID' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const user = await UserModel.create({
       name,
       email,
       password: hashedPassword,
@@ -39,16 +39,21 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, isAdmin } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required' });
   }
 
   try {
-    const user = await User.findOne({ email }).populate('neighborhoodId');
+    const user = await UserModel.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if user role matches the login route
+    if ((isAdmin && user.role !== 'admin') || (!isAdmin && user.role !== 'user')) {
+      return res.status(403).json({ message: 'Invalid credentials for this role' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -56,7 +61,7 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
 
     res.status(200).json({
       message: 'Login successful',
@@ -65,10 +70,35 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        neighborhood: user.neighborhoodId.name,
+        role: user.role,
       },
     });
   } catch (error) {
     res.status(500).json({ message: 'Error logging in', error: error.message });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await UserModel.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user', error: error.message });
+  }
+};
+
+
+
+export const getUsers = async (req, res) => {
+  try {
+    const users = await UserModel.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
 };

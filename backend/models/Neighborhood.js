@@ -4,10 +4,11 @@ const neighborhoodSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
     description: { type: String },
-    // members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }]
   },
   { timestamps: true }
 );
 
-export default mongoose.model('Neighborhoods', neighborhoodSchema);
-
+const NeighborhoodModel = mongoose.model("neighborhoods", neighborhoodSchema);
+export default NeighborhoodModel;
+ 

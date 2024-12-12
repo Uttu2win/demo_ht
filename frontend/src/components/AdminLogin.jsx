@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { loginUser } from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
 
-const Login = () => {
+const AdminLogin = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,18 +17,18 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await loginUser(formData); // Send login data to API
-      localStorage.setItem('token', response.data.token); // Store token
-      alert('Login successful');
-      navigate('/dashboard'); // Redirect to Dashboard page after login
+      const response = await loginUser({ ...formData, isAdmin: true });
+      localStorage.setItem('token', response.data.token); // Store admin token
+      alert('Admin login successful');
+      navigate('/admin-dashboard'); // Redirect to admin dashboard
     } catch (error) {
-      alert(error.response?.data?.message || 'Error logging in');
+      alert(error.response?.data?.message || 'Error logging in as admin');
     }
   };
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Admin Login</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -50,4 +50,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;
