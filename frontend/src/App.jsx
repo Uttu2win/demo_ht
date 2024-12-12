@@ -6,11 +6,17 @@ import AdminLogin from './components/AdminLogin';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
+import Welcome from './components/Welcome';
+import About from './components/About';
+import Auth from './components/Auth';
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/admin" element={<AdminLogin />} />

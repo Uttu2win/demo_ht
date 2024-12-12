@@ -1,0 +1,60 @@
+.about-section {
+    text-align: center;
+    padding: 20px;
+    height: 100vh; /* Full height of the container */
+  }
+  
+  .about-heading {
+    font-size: 36px; /* Larger heading size */
+    margin-bottom: 20px;
+  }
+  
+  .card-container {
+    display: flex;
+    flex-wrap: wrap; /* Ensures wrapping of cards */
+    justify-content: space-around; /* Distributes cards evenly */
+    gap: 20px; /* Adds space between cards */
+    width: 80%; /* 80% of container width */
+    margin: 0 auto; /* Centers the cards horizontally */
+  }
+  
+  .card {
+    flex: 1 1 calc(33.333% - 20px); /* Makes each card take 33.33% of the container width minus the gap */
+    box-sizing: border-box; /* Ensures padding/margin is included in width calculation */
+    background-color: #fff; /* Optional background for card */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    height: 80%; /* 80% height */
+  }
+  
+  .card img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .card p {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  
+  .ok-button {
+    width: 150px;
+    padding: 10px;
+    background-color: #ff5722;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 18px; /* Increase button font size */
+    cursor: pointer;
+    margin-top: 30px; 
+    /* Add margin to move button down */
+    margin-bottom: 30px;
+  }
+  
+  .ok-button:hover {
+    background-color: #e64a19;
+  }
+  

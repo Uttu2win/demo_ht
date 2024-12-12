@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { loginUser } from '../services/api.js';
 import { useNavigate } from 'react-router-dom';
+import './Login.css';
+
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -27,25 +29,43 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
+    <div className="container">
+      <div className="form-image">
+        <img src="your-image-url-here" alt="Login Illustration" />
+      </div>
+      <div className="login-container">
+        <form className="login-form" onSubmit={handleSubmit}>
+          <h2>Login</h2>
+          <p>Please enter your credentials to log in.</p>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Email"
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Password"
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-footer">
+            <button type="submit" className="login-btn">
+              Login
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

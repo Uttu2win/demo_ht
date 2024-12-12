@@ -1,0 +1,25 @@
+.auth-container {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .auth-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .auth-btn {
+    padding: 10px 20px;
+    background-color: #ff5722;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .auth-btn:hover {
+    background-color: #e64a19;
+  }
+  
