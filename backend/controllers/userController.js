@@ -38,6 +38,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
+// backend/controllers/userController.js
 export const loginUser = async (req, res) => {
   const { email, password, isAdmin } = req.body;
 
@@ -61,7 +62,15 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
+    // IMPORTANT: Ensure you're including all necessary info in the token
+    const token = jwt.sign(
+      { 
+        userId: user._id, 
+        role: user.role 
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' } // Optional: add an expiration
+    );
 
     res.status(200).json({
       message: 'Login successful',
@@ -96,7 +105,8 @@ export const deleteUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await UserModel.find();
+    // Optionally, only fetch regular users
+    const users = await UserModel.find({ role: 'user' }).select('-password');
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users', error: error.message });

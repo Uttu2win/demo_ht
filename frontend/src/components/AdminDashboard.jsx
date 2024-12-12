@@ -1,42 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // for navigation after logout
+import { useNavigate } from 'react-router-dom';
+import AdminNeighborhoodManagement from './AdminNeighborhoodManagement';
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('users');
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch users data on component mount
     const fetchUsers = async () => {
-      const token = localStorage.getItem('userToken'); // Get token from localStorage
+      const token = localStorage.getItem('userToken');
 
       if (!token) {
-        // If no token is found, redirect to login
         navigate('/login/admin');
         return;
       }
 
       try {
-        // Fetch user data with token in Authorization header
         const response = await fetch('http://localhost:8000/api/users', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,  // Send token with request
+            'Authorization': `Bearer ${token}`,
           },
         });
 
         if (response.ok) {
           const data = await response.json();
-          setUsers(data); // Set the fetched user data
+          setUsers(data);
         } else {
-          setError('Error fetching data');
+          const errorData = await response.json();
+          setError(errorData.message);
         }
       } catch (err) {
-        setError('Error fetching data');
         console.error(err);
+        setError('Error fetching data');
       } finally {
         setLoading(false);
       }
@@ -53,15 +53,15 @@ const AdminDashboard = () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Send token with request
+          'Authorization': `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
-        // On success, remove the user from the state
         setUsers(users.filter(user => user._id !== userId));
       } else {
-        alert('Error deleting user');
+        const errorData = await response.json();
+        alert(errorData.message || 'Error deleting user');
       }
     } catch (err) {
       console.error(err);
@@ -70,8 +70,8 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken'); // Remove token from localStorage
-    navigate('/login/admin'); // Redirect to admin login page
+    localStorage.removeItem('userToken');
+    navigate('/login/admin');
   };
 
   if (loading) return <div>Loading...</div>;
@@ -79,36 +79,51 @@ const AdminDashboard = () => {
   return (
     <div>
       <h1>Admin Dashboard</h1>
-      {error && <p>{error}</p>}
-      <button onClick={handleLogout}>Logout</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      
+      <div>
+        <button onClick={() => setActiveTab('users')}>Users</button>
+        <button onClick={() => setActiveTab('neighborhoods')}>Neighborhoods</button>
+        <button onClick={handleLogout}>Logout</button>
+      </div>
 
-      <h2>Users</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length === 0 ? (
-            <tr>
-              <td colSpan="3">No users found</td>
-            </tr>
-          ) : (
-            users.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
-                  <button onClick={() => handleDeleteUser(user._id)}>Delete</button>
-                </td>
+      {activeTab === 'users' && (
+        <div>
+          <h2>Users Management</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Neighborhood</th>
+                <th>Actions</th>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="4">No users found</td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.neighborhoodId || 'No Neighborhood'}</td>
+                    <td>
+                      <button onClick={() => handleDeleteUser(user._id)}>Delete</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === 'neighborhoods' && (
+        <AdminNeighborhoodManagement />
+      )}
     </div>
   );
 };

@@ -18,7 +18,10 @@ const AdminLogin = () => {
     e.preventDefault();
     try {
       const response = await loginUser({ ...formData, isAdmin: true });
-      localStorage.setItem('token', response.data.token); // Store admin token
+      
+      // Store admin token specifically
+      localStorage.setItem('userToken', response.data.token); 
+      
       alert('Admin login successful');
       navigate('/admin-dashboard'); // Redirect to admin dashboard
     } catch (error) {

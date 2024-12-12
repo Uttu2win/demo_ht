@@ -1,10 +1,11 @@
 import express from 'express';
-import { getAllNeighborhoods, createNeighborhood} from '../controllers/neighborhoodController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { getAllNeighborhoods, createNeighborhood,deleteNeighborhood } from '../controllers/neighborhoodController.js';
+import { protect,admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', getAllNeighborhoods);
-router.post('/', protect, createNeighborhood);
+router.get('/', protect, admin, getAllNeighborhoods);
+router.post('/', protect, admin, createNeighborhood);
+router.delete('/:neighborhoodId', protect, admin, deleteNeighborhood);
 
 export default router;

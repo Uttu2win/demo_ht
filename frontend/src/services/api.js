@@ -24,4 +24,10 @@ export const fetchUsers = () => API.get('/users');
 export const deleteUser = (userId) => API.delete(`/users/${userId}`);
 
 // Create Neighborhood
-export const createNeighborhood = (neighborhoodData) => API.post('/neighborhoods', neighborhoodData);
+export const createNeighborhood = (neighborhoodData) => 
+  API.post('/neighborhoods', neighborhoodData);
+
+
+// Delete Neighborhood
+export const deleteNeighborhood = (neighborhoodId) => 
+  API.delete(`/neighborhoods/${neighborhoodId}`);
