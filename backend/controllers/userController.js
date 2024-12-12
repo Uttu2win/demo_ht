@@ -105,9 +105,48 @@ export const deleteUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    // Optionally, only fetch regular users
-    const users = await UserModel.find({ role: 'user' }).select('-password');
-    res.status(200).json(users);
+    const { 
+      name, 
+      email, 
+      neighborhoodId, 
+      role, 
+      sortBy = 'createdAt', 
+      sortOrder = 'desc',
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    // Create a dynamic filter object
+    const filter = {};
+    if (name) filter.name = { $regex: name, $options: 'i' };
+    if (email) filter.email = { $regex: email, $options: 'i' };
+    if (neighborhoodId) filter.neighborhoodId = neighborhoodId;
+    if (role) filter.role = role;
+
+    // Determine sort direction
+    const sortDirection = sortOrder === 'asc' ? 1 : -1;
+    const sortOptions = { [sortBy]: sortDirection };
+
+    // Pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch users with filtering, sorting, and pagination
+    const users = await UserModel.find(filter)
+      .select('-password')
+      .populate('neighborhoodId', 'name')
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(Number(limit));
+
+    // Get total count for pagination
+    const totalUsers = await UserModel.countDocuments(filter);
+
+    res.status(200).json({
+      users,
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / limit),
+      currentPage: page
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users', error: error.message });
   }
