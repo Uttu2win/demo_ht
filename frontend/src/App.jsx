@@ -16,7 +16,7 @@ function App() {
         <Route path="/login/admin" element={<AdminLogin />} />
         {/* Wrap the Dashboard route with ProtectedRoute */}
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
-        <Route path="/admindashboard" element={<ProtectedRoute element={<AdminDashboard />} />} />
+        <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} />} />
       </Routes>
     </Router>
   );
