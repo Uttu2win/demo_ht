@@ -18,7 +18,10 @@ export const fetchNeighborhoods = () => API.get('/neighborhoods');
 
 
 // Fetch Users
-export const fetchUsers = () => API.get('/users');
+export const fetchUsers = (params) => {
+  const queryString = new URLSearchParams(params).toString();
+  return API.get(`/users?${queryString}`);
+};
 
 // Delete User
 export const deleteUser = (userId) => API.delete(`/users/${userId}`);
