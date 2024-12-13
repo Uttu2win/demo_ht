@@ -74,3 +74,28 @@ export const updateNeighborhood = async (req, res) => {
     res.status(500).json({ message: 'Error updating neighborhood', error: error.message });
   }
 };
+
+
+export const getNeighborhoodById = async (req, res) => {
+  try {
+    const { neighborhoodId } = req.params;
+    
+    if (!neighborhoodId) {
+      return res.status(400).json({ message: 'Neighborhood ID is required' });
+    }
+
+    const neighborhood = await NeighborhoodModel.findById(neighborhoodId)
+      .populate('members', 'name email');
+      
+    if (!neighborhood) {
+      return res.status(404).json({ message: 'Neighborhood not found' });
+    }
+
+    res.status(200).json(neighborhood);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching neighborhood', 
+      error: error.message 
+    });
+  }
+};

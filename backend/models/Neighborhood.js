@@ -11,4 +11,3 @@ const neighborhoodSchema = new mongoose.Schema(
 
 const NeighborhoodModel = mongoose.model("neighborhoods", neighborhoodSchema);
 export default NeighborhoodModel;
- 

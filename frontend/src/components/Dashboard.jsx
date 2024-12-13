@@ -48,64 +48,68 @@ const Dashboard = () => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
     
-    console.log('Stored User (raw):', storedUser);
-    
     try {
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        console.log('Parsed User:', parsedUser);
         setUser(parsedUser);
   
-        // More flexible neighborhood ID extraction
-        const neighborhoodId = parsedUser.neighborhoodId || 
-                                parsedUser.neighborhood || 
-                                parsedUser.neighborhood_id;
-  
-        if (neighborhoodId) {
+        if (parsedUser.neighborhoodId) {
           const fetchNeighborhoodDetails = async () => {
             try {
-              const response = await axios.get(`http://localhost:8000/api/neighborhoods/${neighborhoodId}`, {
-                headers: { 
-                  Authorization: `Bearer ${localStorage.getItem('token')}` 
+              const response = await axios.get(
+                `http://localhost:8000/api/neighborhoods/${parsedUser.neighborhoodId}`,
+                {
+                  headers: { 
+                    Authorization: `Bearer ${storedToken}` 
+                  }
                 }
-              });
+              );
               setNeighborhood(response.data);
             } catch (error) {
               console.error('Error fetching neighborhood:', error);
+              // Handle the error gracefully without breaking the UI
+              setNeighborhood(null);
             }
           };
   
           fetchNeighborhoodDetails();
-        } else {
-          console.warn('No neighborhood ID found for user', parsedUser);
         }
       }
     } catch (error) {
       console.error('Error parsing stored user:', error);
+      // Handle invalid stored data
+      localStorage.removeItem('user');
+      navigate('/login');
     }
   }, []);
 
   useEffect(() => {
-    if (currentView === 'home' || currentView === 'forsalefree') {
-      const loadPosts = async () => {
-        try {
-          setIsLoading(true);
-          const response = await fetchPosts();
-          const postsData = Array.isArray(response.data) ? response.data : [];
-          setPosts(postsData);
-          setError(null);
-        } catch (error) {
-          console.error('Error fetching posts:', error);
-          setPosts([]);
-          setError(error.message || 'Failed to fetch posts');
-        } finally {
-          setIsLoading(false);
+  if (currentView === 'home' || currentView === 'forsalefree') {
+    const loadPosts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetchPosts();
+        const postsData = Array.isArray(response.data) ? response.data : [];
+        setPosts(postsData);
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        setPosts([]);
+        setError('Failed to fetch posts. Please try logging in again.');
+        // If there's an authentication error, redirect to login
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
         }
-      };
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      loadPosts();
-    }
-  }, [currentView]);
+    loadPosts();
+  }
+}, [currentView, navigate]);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -246,6 +250,17 @@ const Dashboard = () => {
   
     const toggleContent = () => setShowFullContent(!showFullContent);
     const toggleComments = () => setShowComments(!showComments);
+
+    const handleCommentSubmit = async () => {
+      if (!newComment.trim()) return;
+  
+      try {
+        await handleAddComment(post._id, newComment);
+        setNewComment(''); // Clear the input after successful submission
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+      }
+    };
   
     const renderContent = () => {
       if (showFullContent || post.content.length <= MAX_CONTENT_LENGTH) {
@@ -321,7 +336,6 @@ const Dashboard = () => {
           </div>
         </div>
   
-  
         <div className="post-comments-section">
           {/* Comment input field */}
           <div className="comment-input-container">
@@ -339,7 +353,7 @@ const Dashboard = () => {
               <Send size={20} />
             </button>
           </div>
-
+  
           {/* Comments toggle */}
           <button 
             onClick={() => setShowComments(!showComments)}
@@ -348,7 +362,7 @@ const Dashboard = () => {
             <MessageCircle size={20} /> 
             {post.comments ? post.comments.length : 0} Comments
           </button>
-
+  
           {/* Comments display */}
           {showComments && (
             <div className="comments-list">
