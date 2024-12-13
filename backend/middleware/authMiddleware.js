@@ -1,19 +1,22 @@
-// backend/middleware/authMiddleware.js
 import jwt from 'jsonwebtoken';
 import UserModel from '../models/User.js';
 
 export const protect = async (req, res, next) => {
-  // Add more detailed logging
-  console.log('Authorization Headers:', req.headers.authorization);
+  // Detailed logging of authorization
+  console.log('Full Authorization Headers:', req.headers.authorization);
 
   // Check if authorization header exists and starts with Bearer
   if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer')) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ 
+      message: 'Not authorized, no token',
+      details: 'Authorization header is missing or invalid' 
+    });
   }
 
   try {
     // Extract token from header
     const token = req.headers.authorization.split(' ')[1];
+    console.log('Extracted Token:', token);
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -23,7 +26,10 @@ export const protect = async (req, res, next) => {
     const user = await UserModel.findById(decoded.userId).select('-password');
 
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ 
+        message: 'User not found',
+        details: 'No user associated with this token' 
+      });
     }
 
     // Attach user to request
@@ -34,10 +40,16 @@ export const protect = async (req, res, next) => {
     
     // Handle specific JWT errors
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ 
+        message: 'Invalid token',
+        details: 'Token verification failed' 
+      });
     }
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token expired' });
+      return res.status(401).json({ 
+        message: 'Token expired',
+        details: 'Authentication token has expired' 
+      });
     }
 
     return res.status(401).json({ 
@@ -52,6 +64,10 @@ export const admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
-    res.status(403).json({ message: 'Not authorized as an admin' });
+    res.status(403).json({ 
+      message: 'Not authorized as an admin',
+      details: 'Requires admin privileges' 
+    });
   }
 };
+

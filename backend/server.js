@@ -7,12 +7,19 @@ import userRoutes from './routes/userRoutes.js';
 import neighborhoodRoutes from './routes/neighborhoodRoutes.js';
 
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+
 
 dotenv.config();
 
 
 const app = express();
-app.use(cors());
+
+
+app.use(cors({
+  origin: 'http://localhost:5173', // Your frontend URL
+  credentials: true
+}));
 //Middleware
 app.use(express.json()); // To parse JSON requests
 
@@ -28,6 +35,7 @@ app.use('/api/users', userRoutes);
 //To fetch neighborhoods from the database
 app.use('/api/neighborhoods', neighborhoodRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/posts', postRoutes);
 
 
 const PORT = process.env.PORT || 8000;

@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const API = axios.create({
   baseURL: 'http://localhost:8000/api',
 });
@@ -30,7 +31,20 @@ export const deleteUser = (userId) => API.delete(`/users/${userId}`);
 export const createNeighborhood = (neighborhoodData) => 
   API.post('/neighborhoods', neighborhoodData);
 
+// Update Neighborhood
+export const updateNeighborhood = (neighborhoodId, neighborhoodData) => 
+  API.put(`/neighborhoods/${neighborhoodId}`, neighborhoodData);
 
 // Delete Neighborhood
 export const deleteNeighborhood = (neighborhoodId) => 
   API.delete(`/neighborhoods/${neighborhoodId}`);
+
+const getAuthHeader = () => {
+  const token = localStorage.getItem('token');
+  return { 
+    headers: { Authorization: `Bearer ${token}` } 
+  };
+};
+// In api.js
+export const createPost = (postData) => API.post('/posts', postData, getAuthHeader());
+export const fetchPosts = () => API.get('/posts', getAuthHeader());

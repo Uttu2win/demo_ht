@@ -11,9 +11,6 @@ export const getAllNeighborhoods = async (req, res) => {
   }
 };
 
-
-// backend/controllers/neighborhoodController.js
-
 export const createNeighborhood = async (req, res) => {
   const { name, description } = req.body;
 
@@ -32,7 +29,6 @@ export const createNeighborhood = async (req, res) => {
     res.status(500).json({ message: 'Error creating neighborhood', error: error.message });
   }
 };
-
 
 export const deleteNeighborhood = async (req, res) => {
   const { neighborhoodId } = req.params;
@@ -54,4 +50,27 @@ export const deleteNeighborhood = async (req, res) => {
   }
 };
 
+export const updateNeighborhood = async (req, res) => {
+  const { neighborhoodId } = req.params;
+  const { name, description } = req.body;
 
+  if (!name) {
+    return res.status(400).json({ message: 'Neighborhood name is required' });
+  }
+
+  try {
+    const updatedNeighborhood = await NeighborhoodModel.findByIdAndUpdate(
+      neighborhoodId, 
+      { name, description: description || '' }, 
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedNeighborhood) {
+      return res.status(404).json({ message: 'Neighborhood not found' });
+    }
+
+    res.status(200).json(updatedNeighborhood);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating neighborhood', error: error.message });
+  }
+};
