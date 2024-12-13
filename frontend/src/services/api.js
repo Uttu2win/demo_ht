@@ -7,35 +7,44 @@ const API = axios.create({
 
 // Add User
 export const registerUser = (userData) => API.post('/users/register', userData);
+export const loginUser = async (loginData) => {
+  try {
+    const response = await API.post(
+      loginData.isAdmin ? '/users/login/admin' : '/users/login', 
+      loginData
+    );
+    
+    console.log('Login Response:', response.data);
+    
+    // Store the token in localStorage
+    localStorage.setItem('token', response.data.token);
+    
+    // Store the user information in localStorage
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    
+    return response;
+  } catch (error) {
+    console.error('Login error:', error.response ? error.response.data : error);
+    throw error;
+  }
+};
 
-// Login User
-// export const loginUser = (loginData) => API.post('/users/login', loginData);
-
-export const loginUser = (loginData) =>
-  API.post(loginData.isAdmin ? '/users/login/admin' : '/users/login', loginData);
-
-// Fetch Neighborhoods
 export const fetchNeighborhoods = () => API.get('/neighborhoods');
 
-
-// Fetch Users
 export const fetchUsers = (params) => {
   const queryString = new URLSearchParams(params).toString();
   return API.get(`/users?${queryString}`);
 };
 
-// Delete User
+
 export const deleteUser = (userId) => API.delete(`/users/${userId}`);
 
-// Create Neighborhood
 export const createNeighborhood = (neighborhoodData) => 
   API.post('/neighborhoods', neighborhoodData);
 
-// Update Neighborhood
 export const updateNeighborhood = (neighborhoodId, neighborhoodData) => 
   API.put(`/neighborhoods/${neighborhoodId}`, neighborhoodData);
 
-// Delete Neighborhood
 export const deleteNeighborhood = (neighborhoodId) => 
   API.delete(`/neighborhoods/${neighborhoodId}`);
 
@@ -47,6 +56,27 @@ export const getAuthHeader = () => {
 };
 // In api.js
 export const createPost = (postData) => API.post('/posts', postData, getAuthHeader());
-export const fetchPosts = () => API.get('/posts', getAuthHeader());
+export const fetchPosts = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  // More flexible neighborhood ID extraction
+  const neighborhoodId = user?.neighborhoodId || 
+                         user?.neighborhood || 
+                         user?.neighborhood_id;
+  
+  if (!neighborhoodId) {
+    console.warn('No neighborhood ID found', user);
+    return Promise.resolve({ data: [] }); // Return empty array if no neighborhood
+  }
+  
+  return API.get(`/posts?neighborhoodId=${neighborhoodId}`, getAuthHeader());
+};
 
-export const likePost = (postId) => API.post(`/posts/${postId}/like`, {}, getAuthHeader());
+export const likePost = (postId) => {
+  try {
+    return API.post(`/posts/${postId}/like`, {}, getAuthHeader());
+  } catch (error) {
+    console.error('API Like Post Error:', error);
+    throw error;
+  }
+};

@@ -236,6 +236,73 @@
   background-color: #27ae60;
 }
 
+.comment-input-container {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .comment-input-container input {
+    flex-grow: 1;
+    border: none;
+    padding: 10px;
+    outline: none;
+  }
+
+  .comment-send-btn {
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .view-comments-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .view-comments-btn svg {
+    margin-right: 5px;
+  }
+  
+  .comments-list {
+    margin-top: 10px;
+  }
+  
+  .comment-item {
+    display: flex;
+    align-items: start;
+    margin-bottom: 10px;
+  }
+  
+  .comment-profile-pic {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .comment-content {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 10px;
+    flex-grow: 1;
+  }
+  
+  .comment-author {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+  }
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-container {

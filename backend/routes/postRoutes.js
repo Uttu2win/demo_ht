@@ -94,19 +94,25 @@ router.post('/:id/comment', async (req, res) => {
 });
 
 // Like/Unlike a post
-router.post('/:id/like', async (req, res) => {
+router.post('/:id/like', protect, async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user._id;
-
+    
     const post = await PostModel.findById(postId);
     
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
+    // Ensure likes is always an array
+    post.likes = post.likes || [];
+
     // Check if user has already liked the post
-    const likeIndex = post.likes.findIndex(id => id.equals(userId));
+    const likeIndex = post.likes.findIndex(like => 
+      // Handle both ObjectId and string comparisons
+      like.toString() === userId.toString()
+    );
     
     if (likeIndex > -1) {
       // Unlike the post
@@ -115,17 +121,18 @@ router.post('/:id/like', async (req, res) => {
       // Like the post
       post.likes.push(userId);
     }
-
+    
     await post.save();
 
     // Fully populate likes with user details
     await post.populate('likes', 'name');
-
+    
     res.status(200).json(post);
   } catch (error) {
-    res.status(500).json({ 
-      message: "Error liking/unliking post", 
-      error: error.message 
+    console.error('Like Post Error:', error);
+    res.status(500).json({
+      message: "Error liking/unliking post",
+      error: error.message
     });
   }
 });

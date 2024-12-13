@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPost, fetchPosts, likePost } from '../services/api';
 import PostConfirmationModal from './PostConfirmationModal';
 import axios from 'axios';
+import { Send, MessageCircle } from 'lucide-react';
 import './Dashboard.css';
 
 // Utility function to format time ago
@@ -39,13 +40,48 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingPost, setPendingPost] = useState(null);
   const [user, setUser] = useState(null);
+  const [neighborhood, setNeighborhood] = useState(null);
+
 
   // Load user from local storage on component mount
   useEffect(() => {
+    const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    console.log('Stored User:', storedUser);
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    
+    console.log('Stored User (raw):', storedUser);
+    
+    try {
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('Parsed User:', parsedUser);
+        setUser(parsedUser);
+  
+        // More flexible neighborhood ID extraction
+        const neighborhoodId = parsedUser.neighborhoodId || 
+                                parsedUser.neighborhood || 
+                                parsedUser.neighborhood_id;
+  
+        if (neighborhoodId) {
+          const fetchNeighborhoodDetails = async () => {
+            try {
+              const response = await axios.get(`http://localhost:8000/api/neighborhoods/${neighborhoodId}`, {
+                headers: { 
+                  Authorization: `Bearer ${localStorage.getItem('token')}` 
+                }
+              });
+              setNeighborhood(response.data);
+            } catch (error) {
+              console.error('Error fetching neighborhood:', error);
+            }
+          };
+  
+          fetchNeighborhoodDetails();
+        } else {
+          console.warn('No neighborhood ID found for user', parsedUser);
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing stored user:', error);
     }
   }, []);
 
@@ -106,26 +142,48 @@ const Dashboard = () => {
 
   const handleLikePost = async (postId) => {
     // Check if user is logged in
-    console.log('Current User:', user);
-    if (!user) {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
+    if (!token) {
       alert('Please log in to like posts');
       return;
     }
+  
+    let currentUser;
+    try {
+      currentUser = storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error('Error parsing stored user:', error);
+      alert('Error retrieving user information');
+      return;
+    }
+  
+    if (!currentUser) {
+      alert('User information not found. Please log in again.');
+      return;
+    }
+  
     try {
       const response = await likePost(postId);
-  
-      // Ensure response.data exists and has the expected structure
+      
+      // More robust response handling
       if (response && response.data) {
-        // Update the posts list with the updated post
         setPosts(prevPosts => 
           prevPosts.map(post => 
-            post._id === postId ? response.data : post
+            post._id === postId ? {
+              ...post, 
+              likes: response.data.likes || [] 
+            } : post
           )
         );
       }
     } catch (error) {
       console.error('Detailed like error:', error.response ? error.response.data : error);
-      alert(error.response?.data?.message || 'Failed to like/unlike the post');
+      alert(
+        error.response?.data?.message || 
+        'Failed to like/unlike the post. Please try again.'
+      );
     }
   };
   
@@ -245,64 +303,75 @@ const Dashboard = () => {
   
         {/* Interactions section */}
         <div className="post-interactions">
-  <div className="like-section">
-    <button 
-      onClick={() => handleLikePost(post._id)}
-      className="like-btn"
-    >
-      <span style={{ 
-        color: (post.likes && Array.isArray(post.likes) && 
-                user && 
-                post.likes.some(like => 
-                  // Check if like is an object with _id or a direct user ID
-                  (like._id || like) === user._id
-                )) ? 'red' : 'black' 
-      }}>
-        👍 {post.likes ? post.likes.length : 0}
-      </span>
-    </button>
-  </div>
-</div>
-  
-        {/* Comments section */}
-        {showComments && (
-          <div className="comments-container">
-            {(post.comments || []).map((comment, index) => (
-              <div key={index} className="comment">
-                <img 
-                  src={(comment.userId?.profilePic) || '/default-profile.png'} 
-                  alt={`${comment.userName || 'Unknown'}'s profile`} 
-                  className="comment-profile-pic" 
-                />
-                <div>
-                  <span className="comment-author">{comment.userName || 'Unknown User'}</span>
-                  <p>{comment.text}</p>
-                </div>
-              </div>
-            ))}
-  
-            {/* Add comment input */}
-            <div className="add-comment">
-              <input 
-                type="text"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              />
-              <button 
-                onClick={() => {
-                  handleAddComment(post._id, newComment);
-                  setNewComment('');
-                }}
-              >
-                Send
-              </button>
-            </div>
+          <div className="like-section">
+            <button 
+              onClick={() => handleLikePost(post._id)}
+              className="like-btn"
+            >
+              <span style={{ 
+                color: (post.likes && Array.isArray(post.likes) && 
+                        user && 
+                        post.likes.some(like => 
+                          (like._id || like) === user._id
+                        )) ? 'red' : 'black' 
+              }}>
+                👍 {post.likes ? post.likes.length : 0}
+              </span>
+            </button>
           </div>
-        )}
+        </div>
+  
+  
+        <div className="post-comments-section">
+          {/* Comment input field */}
+          <div className="comment-input-container">
+            <input 
+              type="text"
+              placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
+            />
+            <button 
+              onClick={handleCommentSubmit}
+              className="comment-send-btn"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+
+          {/* Comments toggle */}
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className="view-comments-btn"
+          >
+            <MessageCircle size={20} /> 
+            {post.comments ? post.comments.length : 0} Comments
+          </button>
+
+          {/* Comments display */}
+          {showComments && (
+            <div className="comments-list">
+              {(post.comments || []).map((comment, index) => (
+                <div key={index} className="comment-item">
+                  <img 
+                    src={(comment.userId?.profilePic) || '/default-profile.png'} 
+                    alt={`${comment.userName || 'Unknown'}'s profile`} 
+                    className="comment-profile-pic" 
+                  />
+                  <div className="comment-content">
+                    <span className="comment-author">{comment.userName || 'Unknown User'}</span>
+                    <p>{comment.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
+
 
   const renderContent = () => {
     switch (currentView) {
