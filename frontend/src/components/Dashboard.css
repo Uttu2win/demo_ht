@@ -1,79 +1,257 @@
+/* Dashboard.css */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --background-color: #f4f6f7;
+  --text-color: #2c3e50;
+  --border-color: #e0e4e6;
+  --sidebar-width: 250px;
+}
+
 .dashboard-container {
-    display: flex;
-    height: 100vh;
+  display: flex;
+  height: 100vh;
+  background-color: var(--background-color);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: white;
+  border-right: 1px solid var(--border-color);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar button {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.sidebar button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateX(5px);
+}
+
+.sidebar button.active {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+}
+
+.sidebar button:last-child {
+  margin-top: auto;
+  background-color: #e74c3c;
+  color: white;
+}
+
+/* Main Content Area */
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.home-content h2 {
+  color: var(--text-color);
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 10px;
+}
+
+/* Post Card Styles */
+.post-card {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.post-card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.post-author {
+  font-weight: bold;
+  color: var(--text-color);
+  display: block;
+}
+
+.post-timestamp {
+  color: #7f8c8d;
+  font-size: 0.85em;
+}
+
+.post-content h3 {
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.post-content p {
+  color: #34495e;
+  line-height: 1.6;
+}
+
+.post-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 15px;
+  object-fit: cover;
+}
+
+.see-more-btn {
+  color: var(--primary-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.post-interactions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+}
+
+.like-btn, .comment-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1em;
+}
+
+.like-btn:hover, .comment-btn:hover {
+  color: var(--primary-color);
+}
+
+.comments-container {
+  margin-top: 15px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+}
+
+.comment {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.comment-profile-pic {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.add-comment {
+  display: flex;
+  margin-top: 15px;
+}
+
+.add-comment input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-right: 10px;
+}
+
+.add-comment button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+/* Create Post Form */
+.post-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.post-content input, 
+.post-content textarea, 
+.post-content select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.post-content textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.post-content button[type="submit"] {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.post-content button[type="submit"]:hover {
+  background-color: #27ae60;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
   }
-  
+
   .sidebar {
-    width: 200px;
-    background-color: #f4f4f4;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
   }
-  
+
   .sidebar button {
-    padding: 10px;
-    margin: 5px 0;
-    background-color: #e0e0e0;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .sidebar button:hover {
-    background-color: #d0d0d0;
-  }
-  
-  .main-content {
     flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background-color: #ffffff;
+    text-align: center;
   }
-  
-  .home-content, 
-  .notifications-content, 
-  .chats-content, 
-  .post-content {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
-  .post-card {
-    border: 1px solid #e0e0e0;
-    margin-bottom: 15px;
-    padding: 15px;
-    border-radius: 5px;
-  }
-  
-  .post-card img {
-    max-width: 100%;
-    height: auto;
-    margin: 10px 0;
-  }
-  
-  .post-content form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .post-content input, 
-  .post-content textarea, 
-  .post-content select {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-  }
-  
-  .post-content button {
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+}

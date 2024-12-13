@@ -39,7 +39,7 @@ export const updateNeighborhood = (neighborhoodId, neighborhoodData) =>
 export const deleteNeighborhood = (neighborhoodId) => 
   API.delete(`/neighborhoods/${neighborhoodId}`);
 
-const getAuthHeader = () => {
+export const getAuthHeader = () => {
   const token = localStorage.getItem('token');
   return { 
     headers: { Authorization: `Bearer ${token}` } 
@@ -48,3 +48,5 @@ const getAuthHeader = () => {
 // In api.js
 export const createPost = (postData) => API.post('/posts', postData, getAuthHeader());
 export const fetchPosts = () => API.get('/posts', getAuthHeader());
+
+export const likePost = (postId) => API.post(`/posts/${postId}/like`, {}, getAuthHeader());

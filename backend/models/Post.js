@@ -5,7 +5,7 @@ const postSchema = new mongoose.Schema({
   content: { type: String, required: true }, // Content of the post
   category: { 
     type: String, 
-    enum: ['Events', 'Announcements', 'News', 'Sale', 'LostAndFound', 'Services'],
+    enum: ['Events', 'Announcements', 'News', 'ForSaleFree', 'LostAndFound', 'Services'],
     required: true 
   }, // Category of the post
   image: { 
@@ -16,14 +16,15 @@ const postSchema = new mongoose.Schema({
     type: String, 
     required: false // URL for externally stored images (optional)
   },
-  likes: { 
-    type: Number, 
-    default: 0 
-  }, // Number of likes for the post
+  likes: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'users' 
+  }], // Number of likes for the post
   comments: [
     {
       text: { type: String, required: true }, // Comment text
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true }, // User who made the comment
+      userName: { type: String, required: true },
       createdAt: { type: Date, default: Date.now } // Timestamp for comment
     }
   ],

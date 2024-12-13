@@ -9,10 +9,21 @@ router.use(protect);
 // Get posts for a specific neighborhood
 router.get('/', async (req, res) => {
   try {
-    // Fetch posts, sorted by most recent first
-    const posts = await PostModel.find()
+    const { category, neighborhoodId } = req.query;
+    
+    const filter = {};
+    if (category) filter.category = category;
+    if (neighborhoodId) filter.neighborhoodId = neighborhoodId;
+
+    const posts = await PostModel.find(filter)
       .sort({ createdAt: -1 })
-      .limit(50); // Limit to prevent overwhelming the client
+      .limit(50)
+      .populate('createdBy', 'name profilePic')
+      .populate('likes', 'name')
+      .populate({
+        path: 'comments.userId',
+        select: 'name profilePic'
+      });
     
     res.status(200).json(posts);
   } catch (error) {
@@ -45,45 +56,79 @@ router.post('/', async (req, res) => {
   }
 });
   
+//Add a comment to a post
+router.post('/:id/comment', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { text } = req.body;
+    const userId = req.user._id;
+    const userName = req.user.name;
 
-// // Add comment to a post
-// router.post('/:id/comment', async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { text, userId } = req.body;
+    const post = await PostModel.findById(postId);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
 
-//     const post = await PostModel.findById(id);
-//     if (!post) {
-//       return res.status(404).json({ message: 'Post not found' });
-//     }
+    post.comments.push({ 
+      text, 
+      userId, 
+      userName 
+    });
 
-//     post.comments.push({ text, userId });
-//     await post.save();
+    await post.save();
 
-//     res.status(200).json(post);
-//   } catch (err) {
-//     res.status(500).json({ message: "Error adding comment", error: err });
-//   }
-// });
+    // Populate comments with user details
+    await post.populate({
+      path: 'comments.userId',
+      select: 'name profilePic'
+    });
 
-// // Like a post
-// router.post('/:id/like', async (req, res) => {
-//   try {
-//     const { id } = req.params;
+    res.status(200).json(post);
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error adding comment", 
+      error: error.message 
+    });
+  }
+});
 
-//     const post = await PostModel.findById(id);
-//     if (!post) {
-//       return res.status(404).json({ message: 'Post not found' });
-//     }
+// Like/Unlike a post
+router.post('/:id/like', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;
 
-//     post.likes += 1;
-//     await post.save();
+    const post = await PostModel.findById(postId);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
 
-//     res.status(200).json(post);
-//   } catch (err) {
-//     res.status(500).json({ message: "Error liking post", error: err });
-//   }
-// });
+    // Check if user has already liked the post
+    const likeIndex = post.likes.findIndex(id => id.equals(userId));
+    
+    if (likeIndex > -1) {
+      // Unlike the post
+      post.likes.splice(likeIndex, 1);
+    } else {
+      // Like the post
+      post.likes.push(userId);
+    }
+
+    await post.save();
+
+    // Fully populate likes with user details
+    await post.populate('likes', 'name');
+
+    res.status(200).json(post);
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error liking/unliking post", 
+      error: error.message 
+    });
+  }
+});
 
 // Delete a post
 router.delete('/:id', admin, async (req, res) => {
@@ -98,22 +143,6 @@ router.delete('/:id', admin, async (req, res) => {
     }
   });
 
-
-router.get("/", async (req, res) => {
-    const { neighborhoodId, category } = req.query;
-  
-    try {
-      const filter = {};
-      if (neighborhoodId) filter.neighborhoodId = neighborhoodId;
-      if (category) filter.category = category;
-  
-      // Sort posts by creation date, newest first
-      const posts = await PostModel.find(filter).sort({ createdAt: -1 });
-      res.status(200).json(posts);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch posts", details: error.message });
-    }
-});
 
 export default router;
 
