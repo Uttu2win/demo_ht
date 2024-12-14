@@ -9,6 +9,7 @@ import neighborhoodRoutes from './routes/neighborhoodRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import listingRoutes from './routes/listingRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/neighborhoods', neighborhoodRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/listings', listingRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 const PORT = process.env.PORT || 8000;
 

@@ -2,6 +2,7 @@ import express from 'express';
 import PostModel from '../models/Post.js';
 import { protect,admin } from '../middleware/authMiddleware.js';
 import mongoose from 'mongoose';
+import { createNeighborhoodNotification } from '../services/notificationService.js';
 
 const router = express.Router();
 
@@ -46,6 +47,17 @@ router.post('/', async (req, res) => {
     });
     
     await newPost.save();
+    await createNeighborhoodNotification({
+      type: 'post',
+      actorId: req.user._id,
+      neighborhoodId: req.user.neighborhoodId,
+      excludeUserId: req.user._id,
+      data: {
+        category: newPost.category,
+        postId: newPost._id,
+        postTitle: newPost.title
+      }
+    });
     res.status(201).json(newPost);
   } catch (error) {
     console.error('Full post creation error:', error);
@@ -68,6 +80,17 @@ router.post('/:id/comment', async (req, res) => {
     
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
+    }
+    if (post.createdBy.toString() !== req.user._id.toString()) {
+      await createNotification({
+        type: 'comment',
+        actorId: req.user._id,
+        recipientId: post.createdBy,
+        data: {
+          postId: post._id,
+          postTitle: post.title
+        }
+      });
     }
 
     post.comments.push({ 
@@ -105,6 +128,18 @@ router.post('/:id/like', protect, async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
+    if (post.createdBy.toString() !== req.user._id.toString()) {
+      await createNotification({
+        type: 'like',
+        actorId: req.user._id,
+        recipientId: post.createdBy,
+        data: {
+          postId: post._id,
+          postTitle: post.title
+        }
+      });
+    }
+
     // Ensure likes is always an array
     post.likes = post.likes || [];
 
@@ -121,6 +156,8 @@ router.post('/:id/like', protect, async (req, res) => {
       // Like the post
       post.likes.push(userId);
     }
+
+    
     
     await post.save();
 

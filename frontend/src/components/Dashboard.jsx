@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPost, fetchPosts, likePost } from '../services/api.js';
 import PostConfirmationModal from './PostConfirmationModal.jsx';
 import ForSaleFree from './ForSaleFree/ForSaleFree.jsx';
+import Notifications from './Notifications.jsx';
 import axios from 'axios';
 import { Send, MessageCircle } from 'lucide-react';
 import './Dashboard.css';
@@ -11,7 +12,9 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState('home');
-  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]); // Store all posts
+  const [filteredPosts, setFilteredPosts] = useState([]); // Store filtered posts
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,112 +64,143 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-  if (currentView === 'home' /*|| currentView === 'forsalefree'*/) {
-    const loadPosts = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetchPosts();
-        const postsData = Array.isArray(response.data) ? response.data : [];
-        setPosts(postsData);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-        setPosts([]);
-        setError('Failed to fetch posts. Please try logging in again.');
-        // If there's an authentication error, redirect to login
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          navigate('/login');
+    if (currentView === 'home') {
+      const loadPosts = async () => {
+        try {
+          setIsLoading(true);
+          const response = await fetchPosts();
+          const postsData = Array.isArray(response.data) ? response.data : [];
+          setAllPosts(postsData);
+          setFilteredPosts(postsData); // Initialize filtered posts with all posts
+          setError(null);
+        } catch (error) {
+          console.error('Error fetching posts:', error);
+          setAllPosts([]);
+          setFilteredPosts([]);
+          setError('Failed to fetch posts. Please try logging in again.');
+          if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+          }
+        } finally {
+          setIsLoading(false);
         }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      };
 
-    loadPosts();
-  }
-}, [currentView, navigate]);
-
-  const handleCreatePost = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const postData = {
-      title: formData.get('title'),
-      content: formData.get('content'),
-      category: formData.get('category'),
-      imageUrl: formData.get('imageUrl') || ''
-    };
-
-    setPendingPost(postData);
-    setIsModalOpen(true);
-  };
-
-  const confirmPost = async () => {
-    if (!pendingPost) return;
-
-    try {
-      const response = await createPost(pendingPost);
-      
-      if (currentView === 'home') {
-        setPosts(prevPosts => [response.data, ...prevPosts]);
-      }
-      
-      setCurrentView('home');
-      setIsModalOpen(false);
-      setPendingPost(null);
-    } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+      loadPosts();
     }
-  };
+  }, [currentView, navigate]);
 
-  const handleLikePost = async (postId) => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (!token) {
-      alert('Please log in to like posts');
-      return;
-    }
-  
-    let currentUser;
-    try {
-      currentUser = storedUser ? JSON.parse(storedUser) : null;
-    } catch (error) {
-      console.error('Error parsing stored user:', error);
-      alert('Error retrieving user information');
-      return;
-    }
-  
-    if (!currentUser) {
-      alert('User information not found. Please log in again.');
-      return;
-    }
-  
-    try {
-      const response = await likePost(postId);
-      
-      // More robust response handling
-      if (response && response.data) {
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
-            post._id === postId ? {
-              ...post, 
-              likes: response.data.likes || [] 
-            } : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Detailed like error:', error.response ? error.response.data : error);
-      alert(
-        error.response?.data?.message || 
-        'Failed to like/unlike the post. Please try again.'
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredPosts(allPosts);
+    } else {
+      const lowercaseSearch = searchTerm.toLowerCase();
+      const filtered = allPosts.filter(post => 
+        (post.title?.toLowerCase().includes(lowercaseSearch) ||
+        post.content?.toLowerCase().includes(lowercaseSearch) ||
+        post.category?.toLowerCase().includes(lowercaseSearch) ||
+        post.createdBy?.name?.toLowerCase().includes(lowercaseSearch))
       );
+      setFilteredPosts(filtered);
     }
+  }, [searchTerm, allPosts]);
+
+// const handleSearchChange = (e) => {
+//   const query = e.target.value.toLowerCase();
+//   setSearchQuery(query);
+  
+//   // Filter posts based on title or username
+//   const filtered = posts.filter(post => 
+//     post.title.toLowerCase().includes(query) || 
+//     post.createdBy.name.toLowerCase().includes(query)
+//   );
+//   setFilteredPosts(filtered);
+// };
+
+
+const handleCreatePost = async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const postData = {
+    title: formData.get('title'),
+    content: formData.get('content'),
+    category: formData.get('category'),
+    imageUrl: formData.get('imageUrl') || ''
   };
+
+  setPendingPost(postData);
+  setIsModalOpen(true);
+};
+
+const confirmPost = async () => {
+  if (!pendingPost) return;
+
+  try {
+    const response = await createPost(pendingPost);
+    
+    if (currentView === 'home') {
+      setAllPosts(prevPosts => [response.data, ...prevPosts]);
+      setFilteredPosts(prevPosts => [response.data, ...prevPosts]);
+    }
+    
+    setCurrentView('home');
+    setIsModalOpen(false);
+    setPendingPost(null);
+  } catch (error) {
+    console.error('Error creating post:', error);
+    alert('Failed to create post. Please try again.');
+  }
+};
+
+  
+const handleLikePost = async (postId) => {
+  const token = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
+  
+  if (!token) {
+    alert('Please log in to like posts');
+    return;
+  }
+
+  let currentUser;
+  try {
+    currentUser = storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.error('Error parsing stored user:', error);
+    alert('Error retrieving user information');
+    return;
+  }
+
+  if (!currentUser) {
+    alert('User information not found. Please log in again.');
+    return;
+  }
+
+  try {
+    const response = await likePost(postId);
+    
+    if (response && response.data) {
+      const updatePosts = posts => 
+        posts.map(post => 
+          post._id === postId ? {
+            ...post, 
+            likes: response.data.likes || [] 
+          } : post
+        );
+      
+      setAllPosts(updatePosts);
+      setFilteredPosts(updatePosts);
+    }
+  } catch (error) {
+    console.error('Detailed like error:', error.response ? error.response.data : error);
+    alert(
+      error.response?.data?.message || 
+      'Failed to like/unlike the post. Please try again.'
+    );
+  }
+};
   
   
 
@@ -371,14 +405,23 @@ const Dashboard = () => {
         return (
           <div className="home-content">
             <h2>Neighborhood Updates</h2>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search posts..."
+                className="search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
             {isLoading ? (
               <p>Loading posts...</p>
             ) : error ? (
               <p>Error: {error}</p>
-            ) : posts.length === 0 ? (
+            ) : filteredPosts.length === 0 ? (
               <p>No posts available</p>
             ) : (
-              posts.filter(post => post && post._id).map(post => (
+              filteredPosts.filter(post => post && post._id).map(post => (
                 <PostCard key={post._id} post={post} />
               ))
             )}
@@ -402,12 +445,7 @@ const Dashboard = () => {
           </div>
         );*/
       case 'notifications':
-        return (
-          <div className="notifications-content">
-            <h2>Neighborhood Notifications</h2>
-            <p>No notifications at the moment.</p>
-          </div>
-        );
+        return <Notifications userId={user?._id} />;
       case 'chats':
         return (
           <div className="chats-content">

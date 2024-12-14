@@ -66,6 +66,16 @@ router.post('/', protect, async (req, res) => {
 
     await newListing.save();
 
+    await createNeighborhoodNotification({
+        type: 'listing',
+        actorId: req.user._id,
+        neighborhoodId: req.user.neighborhoodId,
+        excludeUserId: req.user._id,
+        data: {
+          category: newListing.category
+        }
+      });
+
     const populatedListing = await ListingModel.findById(newListing._id)
       .populate('createdBy', 'name profilePic');
 

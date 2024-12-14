@@ -30,6 +30,16 @@ export const registerUser = async (req, res) => {
     neighborhood.members.push(user._id);
     await neighborhood.save();
 
+    if (user.neighborhoodId) {
+      await createNeighborhoodNotification({
+        type: 'join',
+        actorId: user._id,
+        neighborhoodId: user.neighborhoodId,
+        excludeUserId: user._id,
+        data: {}
+      });
+    }
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
     res.status(201).json({ message: 'User registered successfully', user, token });
