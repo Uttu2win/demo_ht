@@ -1,35 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPost, fetchPosts, likePost } from '../services/api';
-import PostConfirmationModal from './PostConfirmationModal';
+import { createPost, fetchPosts, likePost } from '../services/api.js';
+import PostConfirmationModal from './PostConfirmationModal.jsx';
+import ForSaleFree from './ForSaleFree/ForSaleFree.jsx';
 import axios from 'axios';
 import { Send, MessageCircle } from 'lucide-react';
 import './Dashboard.css';
-
-// Utility function to format time ago
-const formatTimeAgo = (date) => {
-  const now = new Date();
-  const postDate = new Date(date);
-  const diffInSeconds = Math.floor((now - postDate) / 1000);
-  
-  const intervals = [
-    { label: 'year', seconds: 31536000 },
-    { label: 'month', seconds: 2592000 },
-    { label: 'week', seconds: 604800 },
-    { label: 'day', seconds: 86400 },
-    { label: 'hour', seconds: 3600 },
-    { label: 'minute', seconds: 60 },
-  ];
-
-  for (let interval of intervals) {
-    const count = Math.floor(diffInSeconds / interval.seconds);
-    if (count >= 1) {
-      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
-    }
-  }
-
-  return 'just now';
-};
+import { formatTimeAgo } from '../utils/dateUtils.js';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -84,7 +61,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-  if (currentView === 'home' || currentView === 'forsalefree') {
+  if (currentView === 'home' /*|| currentView === 'forsalefree'*/) {
     const loadPosts = async () => {
       try {
         setIsLoading(true);
@@ -226,8 +203,9 @@ const Dashboard = () => {
       { view: 'home', label: 'Home' },
       { view: 'notifications', label: 'Notifications' },
       { view: 'chats', label: 'Chats' },
-      { view: 'post', label: 'Post' },
       { view: 'forsalefree', label: 'For Sale & Free' },
+      { view: 'post', label: 'Post' },
+      
     ];
 
     return buttons.map(button => (
@@ -407,7 +385,7 @@ const Dashboard = () => {
           </div>
         );
       case 'forsalefree':
-        return (
+        return <ForSaleFree />/*(
           <div className="home-content">
             <h2>For Sale & Free</h2>
             {isLoading ? (
@@ -422,7 +400,7 @@ const Dashboard = () => {
                 .map(post => <PostCard key={post._id} post={post} />)
             )}
           </div>
-        );
+        );*/
       case 'notifications':
         return (
           <div className="notifications-content">

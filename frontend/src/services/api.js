@@ -83,3 +83,16 @@ export const likePost = (postId) => {
     throw error;
   }
 };
+
+export const fetchListings = (params) => {
+  const queryString = new URLSearchParams(params).toString();
+  return API.get(`/listings?${queryString}`, getAuthHeader());
+};
+
+export const createListing = (listingData) => {
+  return API.post('/listings', listingData, getAuthHeader());
+};
+
+export const deleteListing = (listingId) => {
+  return API.delete(`/listings/${listingId}`, getAuthHeader());
+};
