@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPost, fetchPosts, likePost } from '../services/api.js';
+import { createPost, fetchPosts, likePost,addComment } from '../services/api.js';
 import PostConfirmationModal from './PostConfirmationModal.jsx';
 import ForSaleFree from './ForSaleFree/ForSaleFree.jsx';
 import Notifications from './Notifications.jsx';
+import ProfileMenu from './Profile Management/ProfileMenu.jsx';
 import axios from 'axios';
 import { Send, MessageCircle } from 'lucide-react';
 import './Dashboard.css';
@@ -11,6 +12,7 @@ import { formatTimeAgo } from '../utils/dateUtils.js';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
   const [currentView, setCurrentView] = useState('home');
   const [allPosts, setAllPosts] = useState([]); // Store all posts
   const [filteredPosts, setFilteredPosts] = useState([]); // Store filtered posts
@@ -70,6 +72,7 @@ const Dashboard = () => {
           setIsLoading(true);
           const response = await fetchPosts();
           const postsData = Array.isArray(response.data) ? response.data : [];
+          setPosts(postsData);
           setAllPosts(postsData);
           setFilteredPosts(postsData); // Initialize filtered posts with all posts
           setError(null);
@@ -156,75 +159,61 @@ const confirmPost = async () => {
 
   
 const handleLikePost = async (postId) => {
-  const token = localStorage.getItem('token');
-  const storedUser = localStorage.getItem('user');
-  
-  if (!token) {
-    alert('Please log in to like posts');
-    return;
-  }
-
-  let currentUser;
   try {
-    currentUser = storedUser ? JSON.parse(storedUser) : null;
-  } catch (error) {
-    console.error('Error parsing stored user:', error);
-    alert('Error retrieving user information');
-    return;
-  }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to like posts');
+      navigate('/login');
+      return;
+    }
 
-  if (!currentUser) {
-    alert('User information not found. Please log in again.');
-    return;
-  }
-
-  try {
     const response = await likePost(postId);
     
     if (response && response.data) {
+      // Update both allPosts and filteredPosts
       const updatePosts = posts => 
         posts.map(post => 
-          post._id === postId ? {
-            ...post, 
-            likes: response.data.likes || [] 
-          } : post
+          post._id === postId ? response.data : post
         );
       
-      setAllPosts(updatePosts);
-      setFilteredPosts(updatePosts);
+      setAllPosts(prevPosts => updatePosts(prevPosts));
+      setFilteredPosts(prevPosts => updatePosts(prevPosts));
     }
   } catch (error) {
-    console.error('Detailed like error:', error.response ? error.response.data : error);
-    alert(
-      error.response?.data?.message || 
-      'Failed to like/unlike the post. Please try again.'
-    );
+    console.error('Error liking post:', error);
+    const errorMessage = error.response?.data?.message || 'Failed to like/unlike the post. Please try again.';
+    alert(errorMessage);
+    
+    // If unauthorized, redirect to login
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login');
+    }
   }
 };
   
   
 
-  const handleAddComment = async (postId, commentText) => {
-    try {
-      const response = await axios.post(`http://localhost:8000/api/posts/${postId}/comment`, 
-        { text: commentText }, 
-        {
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem('token')}` 
-          }
-        }
-      );
-
-      // Update the posts list with the updated post
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
+const handleAddComment = async (postId, commentText) => {
+  try {
+    const response = await addComment(postId, commentText);
+    
+    if (response && response.data) {
+      // Update both allPosts and filteredPosts
+      const updatePosts = posts => 
+        posts.map(post => 
           post._id === postId ? response.data : post
-        )
-      );
-    } catch (error) {
-      console.error('Error adding comment:', error);
+        );
+      
+      setAllPosts(prevPosts => updatePosts(prevPosts));
+      setFilteredPosts(prevPosts => updatePosts(prevPosts));
     }
-  };
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    alert('Failed to add comment. Please try again.');
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -253,7 +242,7 @@ const handleLikePost = async (postId) => {
     ));
   };
 
-  const PostCard = ({ post }) => {
+  const PostCard = ({ post, onLike, onComment }) => {
     const [showFullContent, setShowFullContent] = useState(false);
     const [showComments, setShowComments] = useState(false);
     const [newComment, setNewComment] = useState('');
@@ -263,15 +252,10 @@ const handleLikePost = async (postId) => {
     const toggleContent = () => setShowFullContent(!showFullContent);
     const toggleComments = () => setShowComments(!showComments);
 
-    const handleCommentSubmit = async () => {
+    const handleCommentSubmit = () => {
       if (!newComment.trim()) return;
-  
-      try {
-        await handleAddComment(post._id, newComment);
-        setNewComment(''); // Clear the input after successful submission
-      } catch (error) {
-        console.error('Error submitting comment:', error);
-      }
+      handleAddComment(post._id, newComment);
+      setNewComment('');
     };
   
     const renderContent = () => {
@@ -288,20 +272,17 @@ const handleLikePost = async (postId) => {
   
     return (
       <div className="post-card">
-        {/* User info and timestamp */}
-        <div className="post-header">
-          <img 
-            src={post.createdBy.profilePic || '/default-profile.png'} 
-            alt={`${post.createdBy.name || 'Unknown'}'s profile`} 
-            className="profile-pic" 
-          />
-          <div>
-            <span className="post-author">{post.createdBy.name || 'Unknown User'}</span>
-            <span className="post-timestamp">
-              {formatTimeAgo(post.createdAt)}
-            </span>
-          </div>
+      <div className="post-header">
+        <img 
+          src={post.createdBy?.profilePicUrl || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b'} 
+          alt={post.createdBy?.name} 
+          className="profile-pic"
+        />
+        <div>
+          <span className="post-author">{post.createdBy?.name}</span>
+          <span className="post-timestamp">{formatTimeAgo(post.createdAt)}</span>
         </div>
+      </div>
   
         {/* Post content */}
         <div className="post-content">
@@ -349,54 +330,46 @@ const handleLikePost = async (postId) => {
         </div>
   
         <div className="post-comments-section">
-          {/* Comment input field */}
-          <div className="comment-input-container">
-            <input 
-              type="text"
-              placeholder="Write a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
-            />
-            <button 
-              onClick={handleCommentSubmit}
-              className="comment-send-btn"
-            >
-              <Send size={20} />
-            </button>
-          </div>
+        <div className="comment-input-container">
+          <input 
+            type="text"
+            placeholder="Write a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
+          />
+          <button onClick={handleCommentSubmit} className="comment-send-btn">
+            <Send size={20} />
+          </button>
+        </div>
   
           {/* Comments toggle */}
-          <button 
-            onClick={() => setShowComments(!showComments)}
-            className="view-comments-btn"
-          >
-            <MessageCircle size={20} /> 
-            {post.comments ? post.comments.length : 0} Comments
-          </button>
-  
-          {/* Comments display */}
-          {showComments && (
-            <div className="comments-list">
-              {(post.comments || []).map((comment, index) => (
-                <div key={index} className="comment-item">
-                  <img 
-                    src={(comment.userId?.profilePic) || '/default-profile.png'} 
-                    alt={`${comment.userName || 'Unknown'}'s profile`} 
-                    className="comment-profile-pic" 
-                  />
-                  <div className="comment-content">
-                    <span className="comment-author">{comment.userName || 'Unknown User'}</span>
-                    <p>{comment.text}</p>
-                  </div>
+          <button onClick={() => setShowComments(!showComments)} className="view-comments-btn">
+          <MessageCircle size={20} />
+          {post.comments?.length || 0} Comments
+        </button>
+
+        {showComments && (
+          <div className="comments-list">
+            {post.comments?.map((comment, index) => (
+              <div key={index} className="comment-item">
+                <img 
+                  src={comment.userId?.profilePicUrl || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b'} 
+                  alt={comment.userName} 
+                  className="comment-profile-pic"
+                />
+                <div className="comment-content">
+                  <span className="comment-author">{comment.userName}</span>
+                  <p>{comment.text}</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 
   const renderContent = () => {
@@ -428,22 +401,8 @@ const handleLikePost = async (postId) => {
           </div>
         );
       case 'forsalefree':
-        return <ForSaleFree />/*(
-          <div className="home-content">
-            <h2>For Sale & Free</h2>
-            {isLoading ? (
-              <p>Loading posts...</p>
-            ) : error ? (
-              <p>Error: {error}</p>
-            ) : posts.filter(p => p.category === 'ForSaleFree').length === 0 ? (
-              <p>No For Sale & Free posts available</p>
-            ) : (
-              posts
-                .filter(p => p.category === 'ForSaleFree')
-                .map(post => <PostCard key={post._id} post={post} />)
-            )}
-          </div>
-        );*/
+        return <ForSaleFree />
+
       case 'notifications':
         return <Notifications userId={user?._id} />;
       case 'chats':
@@ -495,6 +454,7 @@ const handleLikePost = async (postId) => {
 
   return (
     <div className="dashboard-container">
+      
       {/* Sidebar */}
       <div className="sidebar">
         {renderSidebarButtons()}
@@ -505,6 +465,10 @@ const handleLikePost = async (postId) => {
 
       {/* Main Content Area */}
       <div className="main-content">
+      <div className="dashboard-header">
+      
+            <ProfileMenu user={user} />
+        </div>
         {renderContent()}
       </div>
 

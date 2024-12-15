@@ -228,6 +228,7 @@ const UserManagement = ({ setError }) => {
       <table className="users-table">
         <thead>
           <tr>
+            <th>Profile</th>
             <th>Name</th>
             <th>Email</th>
             <th>Neighborhood</th>
@@ -238,11 +239,18 @@ const UserManagement = ({ setError }) => {
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan="5">No users found</td>
+              <td colSpan="6">No users found</td>
             </tr>
           ) : (
             users.map((user) => (
               <tr key={user._id}>
+                <td>
+                  <img 
+                    src={user.profilePicUrl || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b'} 
+                    alt={user.name} 
+                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                </td>
                 <td>{user.name}</td>
                 <td>{user.email}</td>
                 <td>{user.neighborhoodId?.name || 'No Neighborhood'}</td>

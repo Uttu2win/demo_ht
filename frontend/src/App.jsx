@@ -9,6 +9,8 @@ import ProtectedRoute from './components/ProtectedRoute'; // Import the Protecte
 import Welcome from './components/Welcome';
 import About from './components/About';
 import Auth from './components/Auth';
+import ProfileManagement from './components/Profile Management/ProfileManagement';
+
 
 function App() {
   return (
@@ -23,7 +25,8 @@ function App() {
         {/* Wrap the Dashboard route with ProtectedRoute */}
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
         <Route path="/admin-dashboard" element={<ProtectedRoute element={<AdminDashboard />} adminRoute={true} />} 
-/>      </Routes>
+        
+/>     <Route path="/profile" element={<ProtectedRoute element={<ProfileManagement />} />} /> </Routes>
     </Router>
   );
 }

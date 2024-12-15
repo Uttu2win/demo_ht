@@ -3,30 +3,34 @@ import { X } from 'lucide-react';
 import { formatTimeAgo } from '../utils/dateUtils.js';
 import axios from 'axios';
 
-const Notifications = ({ userId }) => {
+const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchNotifications();
-  }, [userId]);
+  }, []);
 
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('Fetching notifications...');
       const response = await axios.get('http://localhost:8000/api/notifications', {
         headers: {
           Authorization: `Bearer ${token}`
-        },
-        params: {
-          userId,
-          days: 5 // Only fetch last 5 days notifications
         }
       });
+
+      console.log('Received notifications:', response.data);
       setNotifications(response.data);
       setLoading(false);
     } catch (err) {
+      console.error('Error fetching notifications:', err);
       setError('Failed to fetch notifications');
       setLoading(false);
     }
@@ -61,32 +65,32 @@ const Notifications = ({ userId }) => {
               <div className="notification-content">
                 {notification.type === 'post' && (
                   <p>
-                    <strong>{notification.actor.name}</strong> posted a{' '}
-                    {notification.data.category} {formatTimeAgo(notification.createdAt)} ago
+                    <strong>{notification.actor?.name}</strong> posted a{' '}
+                    {notification.data?.category} {formatTimeAgo(notification.createdAt)} 
                   </p>
                 )}
                 {notification.type === 'like' && (
                   <p>
-                    <strong>{notification.actor.name}</strong> liked your post{' '}
-                    "{notification.data.postTitle}" {formatTimeAgo(notification.createdAt)} ago
+                    <strong>{notification.actor?.name}</strong> liked your post{' '}
+                    "{notification.data?.postTitle}" {formatTimeAgo(notification.createdAt)} 
                   </p>
                 )}
                 {notification.type === 'comment' && (
                   <p>
-                    <strong>{notification.actor.name}</strong> commented on your post{' '}
-                    "{notification.data.postTitle}" {formatTimeAgo(notification.createdAt)} ago
+                    <strong>{notification.actor?.name}</strong> commented on your post{' '}
+                    "{notification.data?.postTitle}" {formatTimeAgo(notification.createdAt)} 
                   </p>
                 )}
                 {notification.type === 'listing' && (
                   <p>
-                    <strong>{notification.actor.name}</strong> has posted a listing for{' '}
-                    {notification.data.category === 'paid' ? 'sale' : 'free'}
+                    <strong>{notification.actor?.name}</strong> has posted a listing for{' '}
+                    {notification.data?.category === 'paid' ? 'sale' : 'free'}
                   </p>
                 )}
                 {notification.type === 'join' && (
                   <p>
-                    <strong>{notification.actor.name}</strong> has joined our neighborhood{' '}
-                    {formatTimeAgo(notification.createdAt)} ago
+                    <strong>{notification.actor?.name}</strong> has joined our neighborhood{' '}
+                    {formatTimeAgo(notification.createdAt)} 
                   </p>
                 )}
               </div>
@@ -105,3 +109,4 @@ const Notifications = ({ userId }) => {
 };
 
 export default Notifications;
+

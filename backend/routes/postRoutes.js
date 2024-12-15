@@ -2,7 +2,7 @@ import express from 'express';
 import PostModel from '../models/Post.js';
 import { protect,admin } from '../middleware/authMiddleware.js';
 import mongoose from 'mongoose';
-import { createNeighborhoodNotification } from '../services/notificationService.js';
+import { createNotification,createNeighborhoodNotification } from '../services/notificationService.js';
 
 const router = express.Router();
 
@@ -75,7 +75,6 @@ router.post('/:id/comment', async (req, res) => {
     const { text } = req.body;
     const userId = req.user._id;
     const userName = req.user.name;
-
     const post = await PostModel.findById(postId);
     
     if (!post) {
@@ -92,21 +91,17 @@ router.post('/:id/comment', async (req, res) => {
         }
       });
     }
-
     post.comments.push({ 
       text, 
       userId, 
       userName 
     });
-
     await post.save();
-
     // Populate comments with user details
     await post.populate({
       path: 'comments.userId',
       select: 'name profilePic'
     });
-
     res.status(200).json(post);
   } catch (error) {
     res.status(500).json({ 
@@ -127,22 +122,8 @@ router.post('/:id/like', protect, async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
-
-    if (post.createdBy.toString() !== req.user._id.toString()) {
-      await createNotification({
-        type: 'like',
-        actorId: req.user._id,
-        recipientId: post.createdBy,
-        data: {
-          postId: post._id,
-          postTitle: post.title
-        }
-      });
-    }
-
     // Ensure likes is always an array
     post.likes = post.likes || [];
-
     // Check if user has already liked the post
     const likeIndex = post.likes.findIndex(like => 
       // Handle both ObjectId and string comparisons
@@ -155,12 +136,22 @@ router.post('/:id/like', protect, async (req, res) => {
     } else {
       // Like the post
       post.likes.push(userId);
+      
+      // Create notification only if the post creator is not the same as the liker
+      if (post.createdBy.toString() !== userId.toString()) {
+        await createNotification({
+          type: 'like',
+          actorId: userId,
+          recipientId: post.createdBy,
+          data: {
+            postId: post._id,
+            postTitle: post.title
+          }
+        });
+      }
     }
-
-    
     
     await post.save();
-
     // Fully populate likes with user details
     await post.populate('likes', 'name');
     
@@ -176,16 +167,16 @@ router.post('/:id/like', protect, async (req, res) => {
 
 // Delete a post
 router.delete('/:id', admin, async (req, res) => {
-    try {
-      const post = await PostModel.findByIdAndDelete(req.params.id);
-      if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
-      }
-      res.json({ message: 'Post deleted successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error deleting post', error });
+  try {
+    const post = await PostModel.findByIdAndDelete(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
     }
-  });
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting post', error });
+  }
+});
 
 
 export default router;

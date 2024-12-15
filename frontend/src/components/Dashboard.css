@@ -381,3 +381,29 @@
   .notification-item strong {
     color: var(--primary-color);
   }
+
+  .dashboard-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: white;
+    border-bottom: 1px solid var(--border-color);
+    margin: -20px -20px 20px -20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  .dashboard-header .profile-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .dashboard-header .profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+  }

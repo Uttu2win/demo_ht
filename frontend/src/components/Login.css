@@ -1,116 +1,175 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Roboto:wght@300;400;500&display=swap');
+
+:root {
+  --primary-blue: #375E97;
+  --primary-orange: #FB6542;
+  --primary-yellow: #FFBB00;
+  --white: #FFFFFF;
+  --light-gray: #F4F4F4;
+  --dark-gray: #333333;
+
+  /* Font Variables */
+  --heading-font: 'Poppins', sans-serif;
+  --body-font: 'Roboto', sans-serif;
+}
+
 .container {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--light-gray);
+  font-family: var(--body-font);
+}
+
+.form-image {
+  flex: 1;
+  background-color: var(--primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.form-image img {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+}
+
+.login-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--white);
+  padding: 2.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h2 {
+  color: var(--primary-blue);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 2.25rem;
+  font-family: var(--heading-font);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.login-form p {
+  color: var(--dark-gray);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--primary-blue);
+  font-weight: 500;
+  font-family: var(--heading-font);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--primary-blue);
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
+  font-family: var(--body-font);
+  font-weight: 300;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+}
+
+.form-footer {
+  text-align: center;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--primary-orange);
+  color: var(--white);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: var(--heading-font);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.login-btn:hover {
+  background-color: var(--primary-blue);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column;
   }
-  
+
   .form-image {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f0f2f5;
-    padding: 2rem;
+    display: none; /* Hide image on smaller screens */
   }
-  
-  .form-image img {
-    max-width: 100%;
-    max-height: 80%;
-    object-fit: contain;
-  }
-  
+
   .login-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: white;
-    padding: 2rem;
+    width: 100%;
   }
-  
+
   .login-form {
-    width: 100%;
-    max-width: 400px;
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    padding: 1.5rem;
+    margin: 0 1rem;
   }
-  
+
   .login-form h2 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 1rem;
+    font-size: 2rem;
   }
-  
-  .login-form p {
-    text-align: center;
-    color: #666;
-    margin-bottom: 1.5rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
-  }
-  
-  .form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-  }
-  
-  .form-group input:focus {
-    outline: none;
-    border-color: #007bff;
-  }
-  
-  .form-footer {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.5rem;
-  }
-  
-  .login-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .login-btn:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Responsive Design */
-  @media screen and (max-width: 768px) {
-    .container {
-      flex-direction: column;
-    }
-    
-    .form-image, .login-container {
-      flex: none;
-    }
-    
-    .form-image {
-      height: 30vh;
-    }
-    
-    .login-container {
-      height: 70vh;
-    }
-  }
+}
+
+/* Existing CSS remains the same, add these new styles */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex-grow: 1;
+  padding-right: 60px; /* Make space for the toggle button */
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--primary-blue);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: var(--body-font);
+  transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+  color: var(--primary-orange);
+}

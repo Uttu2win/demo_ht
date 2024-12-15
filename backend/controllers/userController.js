@@ -2,6 +2,7 @@ import UserModel from '../models/User.js';
 import NeighborhoodModel from '../models/Neighborhood.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
 
 export const registerUser = async (req, res) => {
   const { name, email, password, neighborhoodId, profilePic, role } = req.body;
@@ -29,17 +30,7 @@ export const registerUser = async (req, res) => {
 
     neighborhood.members.push(user._id);
     await neighborhood.save();
-
-    if (user.neighborhoodId) {
-      await createNeighborhoodNotification({
-        type: 'join',
-        actorId: user._id,
-        neighborhoodId: user.neighborhoodId,
-        excludeUserId: user._id,
-        data: {}
-      });
-    }
-
+    
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
     res.status(201).json({ message: 'User registered successfully', user, token });
@@ -160,5 +151,100 @@ export const getUsers = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching users', error: error.message });
+  }
+};
+
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+export const uploadProfilePic = upload.single('profilePic');
+
+// Get user profile
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user._id)
+      .select('-password')
+      .populate('neighborhoodId', 'name');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching user profile', 
+      error: error.message 
+    });
+  }
+};
+
+// Update user profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, email, currentPassword, newPassword } = req.body;
+    const user = await UserModel.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update basic info
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    // Handle password change
+    if (currentPassword && newPassword) {
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Handle profile picture upload
+    if (req.file) {
+      user.profilePic = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype
+      };
+    }
+
+    await user.save();
+
+    // Return updated user without password
+    const updatedUser = await UserModel.findById(user._id)
+      .select('-password')
+      .populate('neighborhoodId', 'name');
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error updating profile', 
+      error: error.message 
+    });
+  }
+};
+
+// Get profile picture
+export const getProfilePic = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.params.userId);
+    if (!user || !user.profilePic || !user.profilePic.data) {
+      return res.status(404).json({ message: 'Profile picture not found' });
+    }
+
+    res.set('Content-Type', user.profilePic.contentType);
+    res.send(user.profilePic.data);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching profile picture', 
+      error: error.message 
+    });
   }
 };

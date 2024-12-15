@@ -4,6 +4,14 @@ const API = axios.create({
   baseURL: 'http://localhost:8000/api',
 });
 
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Add User
 export const registerUser = (userData) => API.post('/users/register', userData);
 
@@ -75,11 +83,27 @@ export const fetchPosts = async () => {
   }
 };
 
-export const likePost = (postId) => {
+export const likePost = async (postId) => {
   try {
-    return API.post(`/posts/${postId}/like`, {}, getAuthHeader());
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await API.post(
+      `/posts/${postId}/like`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response;
   } catch (error) {
-    console.error('API Like Post Error:', error);
+    console.error('API Like Post Error:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -95,4 +119,34 @@ export const createListing = (listingData) => {
 
 export const deleteListing = (listingId) => {
   return API.delete(`/listings/${listingId}`, getAuthHeader());
+};
+
+export const addComment = async (postId, text) => {
+  try {
+    const response = await API.post(`/posts/${postId}/comment`, { text });
+    return response;
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    throw error;
+  }
+};
+
+export const fetchNotifications = async () => {
+  try {
+    const response = await API.get('/notifications');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
+};
+
+export const deleteNotification = async (notificationId) => {
+  try {
+    const response = await API.delete(`/notifications/${notificationId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    throw error;
+  }
 };
