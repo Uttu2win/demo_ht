@@ -51,6 +51,7 @@ const ForSaleFree = () => {
     listing.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+
   return (
     <div className="forsalefree-container">
       {/* Header */}

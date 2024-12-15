@@ -1,5 +1,8 @@
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Roboto:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Ultra&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Modak&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Domine:wght@400..700&display=swap');
 
 :root {
   --primary-blue: #375E97;
@@ -10,8 +13,8 @@
   --dark-gray: #333333;
 
   /* Font Variables */
-  --heading-font: 'Poppins', sans-serif;
-  --body-font: 'Roboto', sans-serif;
+  --heading-font: 'Ultra', sans-serif;
+  --body-font: 'Domine', sans-serif;
 }
 
 .container {
@@ -23,18 +26,21 @@
 
 .form-image {
   flex: 1;
-  background-color: var(--primary-blue);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margin */
+  background-color: var(--primary-blue); /* Optional */
 }
 
 .form-image img {
-  max-width: 100%;
-  max-height: 500px;
-  object-fit: contain;
+  width: 100%; /* Ensure image covers the full width */
+  height: 100%; /* Ensure image covers the full height */
+  object-fit: cover; /* Make sure the image fills the container without distorting */
+  display: block; /* Removes any default inline spacing */
 }
+
 
 .login-container {
   flex: 1;
@@ -59,8 +65,8 @@
   margin-bottom: 1rem;
   font-size: 2.25rem;
   font-family: var(--heading-font);
-  font-weight: 600;
-  letter-spacing: -0.5px;
+  font-weight: 300;
+  letter-spacing: 1.25px;
 }
 
 .login-form p {
@@ -120,6 +126,7 @@
 .login-btn:hover {
   background-color: var(--primary-blue);
 }
+
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {

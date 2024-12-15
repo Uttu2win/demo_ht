@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
     },
     profilePicUrl: { 
       type: String, 
-      default: 'https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_960_720.png' 
+      default: 'https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png' 
     },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
   },

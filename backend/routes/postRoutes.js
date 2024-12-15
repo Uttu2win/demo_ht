@@ -98,11 +98,15 @@ router.post('/:id/comment', async (req, res) => {
     });
     await post.save();
     // Populate comments with user details
-    await post.populate({
-      path: 'comments.userId',
-      select: 'name profilePic'
-    });
-    res.status(200).json(post);
+    const populatedPost = await PostModel.findById(post._id)
+      .populate('createdBy', 'name email profilePicUrl')
+      .populate('likes', 'name email profilePicUrl')
+      .populate({
+        path: 'comments.userId',
+        select: 'name email profilePicUrl'
+      });
+
+    res.status(200).json(populatedPost);
   } catch (error) {
     res.status(500).json({ 
       message: "Error adding comment", 
@@ -153,9 +157,15 @@ router.post('/:id/like', protect, async (req, res) => {
     
     await post.save();
     // Fully populate likes with user details
-    await post.populate('likes', 'name');
+    const populatedPost = await PostModel.findById(post._id)
+      .populate('createdBy', 'name email profilePicUrl')
+      .populate('likes', 'name email profilePicUrl')
+      .populate({
+        path: 'comments.userId',
+        select: 'name email profilePicUrl'
+      });
     
-    res.status(200).json(post);
+    res.status(200).json(populatedPost);
   } catch (error) {
     console.error('Like Post Error:', error);
     res.status(500).json({
@@ -177,7 +187,6 @@ router.delete('/:id', admin, async (req, res) => {
     res.status(500).json({ message: 'Error deleting post', error });
   }
 });
-
 
 export default router;
 

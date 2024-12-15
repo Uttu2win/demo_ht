@@ -39,7 +39,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// backend/controllers/userController.js
+
 export const loginUser = async (req, res) => {
   const { email, password, isAdmin } = req.body;
 
@@ -209,18 +209,23 @@ export const updateProfile = async (req, res) => {
 
     // Handle profile picture upload
     if (req.file) {
+      // Set new profile picture
       user.profilePic = {
         data: req.file.buffer,
         contentType: req.file.mimetype
       };
+      
+      // Update profilePicUrl to point to the new profile picture endpoint
+      user.profilePicUrl = `http://localhost:8000/api/users/profile/picture/${user._id}`;
     }
 
     await user.save();
 
     // Return updated user without password
-    const updatedUser = await UserModel.findById(user._id)
-      .select('-password')
-      .populate('neighborhoodId', 'name');
+    const updatedUser = {
+      ...user.toObject(),
+      password: undefined
+    };
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -235,12 +240,17 @@ export const updateProfile = async (req, res) => {
 export const getProfilePic = async (req, res) => {
   try {
     const user = await UserModel.findById(req.params.userId);
-    if (!user || !user.profilePic || !user.profilePic.data) {
-      return res.status(404).json({ message: 'Profile picture not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    res.set('Content-Type', user.profilePic.contentType);
-    res.send(user.profilePic.data);
+    if (user.profilePic && user.profilePic.data) {
+      res.set('Content-Type', user.profilePic.contentType);
+      return res.send(user.profilePic.data);
+    }
+
+    // If no profile picture is set, redirect to default picture
+    res.redirect('https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png');
   } catch (error) {
     res.status(500).json({ 
       message: 'Error fetching profile picture', 

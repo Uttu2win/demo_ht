@@ -4,51 +4,32 @@
     padding: 20px;
   }
   
-  .profile-management h2 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-  }
-  
-  .message {
-    padding: 10px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    text-align: center;
-    background-color: #e3f2fd;
-    color: #1976d2;
-  }
-  
   .profile-pic-section {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
   
   .profile-pic-preview {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    margin-bottom: 15px;
-    border: 3px solid #f0f0f0;
+    margin-bottom: 12px;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   
   #profile-pic-input {
     display: none;
   }
   
-  .profile-pic-section label {
+  label[for="profile-pic-input"] {
     display: inline-block;
     padding: 8px 16px;
-    background-color: #1976d2;
-    color: white;
+    background: #f5f5f5;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .profile-pic-section label:hover {
-    background-color: #1565c0;
+    margin-top: 8px;
   }
   
   .form-group {
@@ -57,8 +38,8 @@
   
   .form-group label {
     display: block;
-    margin-bottom: 5px;
-    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
   }
   
   .form-group input {
@@ -66,38 +47,53 @@
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 16px;
   }
   
   .password-section {
-    margin-top: 30px;
-    padding-top: 20px;
+    margin-top: 24px;
+    padding-top: 24px;
     border-top: 1px solid #eee;
   }
   
-  .password-section h3 {
-    color: #333;
-    margin-bottom: 20px;
+  .button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  
+  .save-button,
+  .return-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
   }
   
   .save-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #1976d2;
+    background-color: #4CAF50;
     color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  }
+  
+  .return-button {
+    background-color: #f5f5f5;
+    color: #333;
   }
   
   .save-button:hover {
-    background-color: #1565c0;
+    background-color: #45a049;
   }
   
-  .form-group input:focus {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  .return-button:hover {
+    background-color: #e5e5e5;
+  }
+  
+  .message {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    text-align: center;
   }

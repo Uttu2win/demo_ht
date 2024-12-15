@@ -89,6 +89,9 @@ const ProfileManagement = () => {
       localStorage.setItem('user', JSON.stringify(response.data));
       setMessage('Profile updated successfully');
       
+      if (response.data.profilePicUrl) {
+        setPreviewUrl(response.data.profilePicUrl);
+      }
       // Clear password fields
       setFormData(prev => ({
         ...prev,
@@ -181,13 +184,18 @@ const ProfileManagement = () => {
           </div>
         </div>
 
+        <div className="button-group">
         <button type="submit" className="save-button">
           Save Changes
         </button>
-
-        <button type="submit" onClick={()=>navigate('/dashboard')}>
-            Return to Dashboard
+        <button 
+          type="button" 
+          className="return-button"
+          onClick={() => navigate('/dashboard')}
+        >
+          Return to Dashboard
         </button>
+      </div>
       </form>
     </div>
   );

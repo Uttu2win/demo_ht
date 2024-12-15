@@ -258,6 +258,10 @@ const handleAddComment = async (postId, commentText) => {
       setNewComment('');
     };
   
+    const getProfilePicUrl = (userId) => {
+      return `http://localhost:8000/api/users/profile/picture/${userId}`;
+    };
+
     const renderContent = () => {
       if (showFullContent || post.content.length <= MAX_CONTENT_LENGTH) {
         return post.content;
@@ -273,10 +277,13 @@ const handleAddComment = async (postId, commentText) => {
     return (
       <div className="post-card">
       <div className="post-header">
-        <img 
-          src={post.createdBy?.profilePicUrl || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b'} 
+      <img 
+          src={getProfilePicUrl(post.createdBy._id)}
           alt={post.createdBy?.name} 
           className="profile-pic"
+          onError={(e) => {
+            e.target.src = 'https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png';
+          }}
         />
         <div>
           <span className="post-author">{post.createdBy?.name}</span>
@@ -353,10 +360,13 @@ const handleAddComment = async (postId, commentText) => {
           <div className="comments-list">
             {post.comments?.map((comment, index) => (
               <div key={index} className="comment-item">
-                <img 
-                  src={comment.userId?.profilePicUrl || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b'} 
+              <img 
+                  src={getProfilePicUrl(comment.userId?._id)}
                   alt={comment.userName} 
                   className="comment-profile-pic"
+                  onError={(e) => {
+                    e.target.src = 'https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png';
+                  }}
                 />
                 <div className="comment-content">
                   <span className="comment-author">{comment.userName}</span>

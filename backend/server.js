@@ -11,26 +11,16 @@ import postRoutes from './routes/postRoutes.js';
 import listingRoutes from './routes/listingRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 
-
 dotenv.config();
-
-
 const app = express();
-
-
 app.use(cors({
   origin: 'http://localhost:5173', // Your frontend URL
   credentials: true
 }));
 //Middleware
 app.use(express.json()); // To parse JSON requests
-
-
 //Connection to Database 
 connectDB();
-
-
-
 // Test route to create a user
 app.use('/api/users', userRoutes);
 

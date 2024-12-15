@@ -12,6 +12,8 @@ const ListingCard = ({ listing }) => {
     createdBy 
   } = listing;
 
+  
+
   return (
     <div className="listing-card">
       <div className="listing-image">
@@ -26,9 +28,12 @@ const ListingCard = ({ listing }) => {
         <div className="listing-meta">
           <div className="listing-user">
             <img 
-              src={createdBy.profilePic} 
-              alt={createdBy.name} 
-              className="user-avatar"
+                src={`http://localhost:8000/api/users/profile/picture/${createdBy._id}`}
+                alt={createdBy?.name} 
+                className="profile-pic"
+                onError={(e) => {
+                    e.target.src = 'https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png';
+                }}
             />
             <span>{createdBy.name}</span>
           </div>
