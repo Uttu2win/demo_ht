@@ -1,8 +1,10 @@
 import express from 'express';
 import ListingModel from '../models/Listing.js';
 import { protect } from '../middleware/authMiddleware.js';
+import multer from 'multer';
 
 const router = express.Router();
+const upload = multer();
 
 // Get all listings for a neighborhood
 router.get('/', protect, async (req, res) => {
@@ -49,32 +51,40 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// Create a new listing
-router.post('/', protect, async (req, res) => {
+router.get('/:id/image', async (req, res) => {
   try {
-    const { title, description, price, category, imageUrl } = req.body;
+    const listing = await ListingModel.findById(req.params.id);
+    if (!listing || !listing.image || !listing.image.data) {
+      return res.status(404).send('No image found');
+    }
+    res.set('Content-Type', listing.image.contentType);
+    res.send(listing.image.data);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching image', error: error.message });
+  }
+});
 
-    const newListing = new ListingModel({
-      title,
-      description,
-      price: category === 'free' ? 0 : price,
-      category,
-      imageUrl,
+// Create a new listing
+router.post('/', protect, upload.single('image'), async (req, res) => {
+  try {
+    const listingData = {
+      ...req.body,
+      price: req.body.category === 'free' ? 0 : req.body.price,
       createdBy: req.user._id,
       neighborhoodId: req.user.neighborhoodId
-    });
+    };
 
+    // Handle image upload if present
+    if (req.file) {
+      listingData.image = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype
+      };
+      delete listingData.imageUrl; // Remove imageUrl if file is uploaded
+    }
+
+    const newListing = new ListingModel(listingData);
     await newListing.save();
-
-    await createNeighborhoodNotification({
-        type: 'listing',
-        actorId: req.user._id,
-        neighborhoodId: req.user.neighborhoodId,
-        excludeUserId: req.user._id,
-        data: {
-          category: newListing.category
-        }
-      });
 
     const populatedListing = await ListingModel.findById(newListing._id)
       .populate('createdBy', 'name profilePic');

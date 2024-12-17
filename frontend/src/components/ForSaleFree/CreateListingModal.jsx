@@ -7,17 +7,32 @@ const CreateListingModal = ({ isOpen, onClose, onSubmit }) => {
     description: '',
     price: '',
     category: 'paid',
+    image: null,
     imageUrl: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const submitData = new FormData();
+    
+    submitData.append('title', formData.title);
+    submitData.append('description', formData.description);
+    submitData.append('price', formData.price);
+    submitData.append('category', formData.category);
+    
+    if (formData.image) {
+      submitData.append('image', formData.image);
+    } else if (formData.imageUrl) {
+      submitData.append('imageUrl', formData.imageUrl);
+    }
+
+    onSubmit(submitData);
     setFormData({
       title: '',
       description: '',
       price: '',
       category: 'paid',
+      image: null,
       imageUrl: ''
     });
   };
@@ -34,7 +49,7 @@ const CreateListingModal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="listing-form">
+        <form onSubmit={handleSubmit} className="listing-form" encType="multipart/form-data">
           <div className="form-group">
             <label>Title</label>
             <input
@@ -88,13 +103,36 @@ const CreateListingModal = ({ isOpen, onClose, onSubmit }) => {
           )}
 
           <div className="form-group">
-            <label>Image URL</label>
-            <input
-              type="url"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-              required
-            />
+            <label>Image</label>
+            <div className="image-upload-group">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setFormData({
+                      ...formData,
+                      image: file,
+                      imageUrl: '' // Clear URL if file is selected
+                    });
+                  }
+                }}
+              />
+              <div className="separator">OR</div>
+              <input
+                type="url"
+                placeholder="Image URL"
+                value={formData.imageUrl}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    imageUrl: e.target.value,
+                    image: null // Clear file if URL is entered
+                  });
+                }}
+              />
+            </div>
           </div>
 
           <div className="form-actions">

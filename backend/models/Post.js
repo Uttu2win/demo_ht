@@ -9,12 +9,18 @@ const postSchema = new mongoose.Schema({
     required: true 
   }, // Category of the post
   image: { 
-    type: Buffer, 
-    required: false // Optional field for image binary data
+    data: Buffer,
+    contentType: String
   },
   imageUrl: { 
-    type: String, 
-    required: false // URL for externally stored images (optional)
+    type: String,
+    validate: {
+      validator: function(v) {
+        // Either imageUrl or image should be present, but not both
+        return !(this.image && this.image.data && v);
+      },
+      message: 'Cannot have both image upload and image URL'
+    }
   },
   likes: [{ 
     type: mongoose.Schema.Types.ObjectId, 

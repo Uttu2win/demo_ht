@@ -65,7 +65,26 @@ export const createPost = (postData) => {
   if (!user || !user.neighborhoodId) {
     return Promise.reject(new Error('No neighborhood ID found'));
   }
-  return API.post('/posts', { ...postData, neighborhoodId: user.neighborhoodId }, getAuthHeader());
+  
+  // If postData is already FormData, just append neighborhoodId
+  if (postData instanceof FormData) {
+    postData.append('neighborhoodId', user.neighborhoodId);
+  } else {
+    // Create new FormData if regular object
+    const formData = new FormData();
+    Object.keys(postData).forEach(key => {
+      formData.append(key, postData[key]);
+    });
+    postData = formData;
+  }
+  
+  return API.post('/posts', postData, {
+    ...getAuthHeader(),
+    headers: {
+      ...getAuthHeader().headers,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
 };
 
 export const fetchPosts = async () => {
@@ -114,6 +133,15 @@ export const fetchListings = (params) => {
 };
 
 export const createListing = (listingData) => {
+  if (listingData instanceof FormData) {
+    return API.post('/listings', listingData, {
+      ...getAuthHeader(),
+      headers: {
+        ...getAuthHeader().headers,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  }
   return API.post('/listings', listingData, getAuthHeader());
 };
 

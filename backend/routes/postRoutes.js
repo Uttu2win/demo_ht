@@ -2,9 +2,11 @@ import express from 'express';
 import PostModel from '../models/Post.js';
 import { protect,admin } from '../middleware/authMiddleware.js';
 import mongoose from 'mongoose';
+import multer from 'multer';
 import { createNotification,createNeighborhoodNotification } from '../services/notificationService.js';
 
 const router = express.Router();
+const upload = multer();
 
 router.use(protect);
 // Get posts for a specific neighborhood
@@ -34,19 +36,43 @@ router.get('/', async (req, res) => {
     });
   }
 });
+
   
-// Create a new post
-router.post('/', async (req, res) => {
-  console.log('Received post data:', req.body);
-  console.log('User:', req.user); 
+// Get post image
+router.get('/:id/image', async (req, res) => {
   try {
-    const newPost = new PostModel({
+    const post = await PostModel.findById(req.params.id);
+    if (!post || !post.image || !post.image.data) {
+      return res.status(404).send('No image found');
+    }
+    res.set('Content-Type', post.image.contentType);
+    res.send(post.image.data);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching image', error: error.message });
+  }
+});
+
+// Create a new post
+router.post('/', upload.single('image'), async (req, res) => {
+  try {
+    const postData = {
       ...req.body,
-      createdBy: req.user._id,  // Attach the user who created the post
-      neighborhoodId: req.user.neighborhoodId // Assuming user has a neighborhood
-    });
-    
+      createdBy: req.user._id,
+      neighborhoodId: req.user.neighborhoodId
+    };
+
+    // Handle image upload if present
+    if (req.file) {
+      postData.image = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype
+      };
+      delete postData.imageUrl; // Remove imageUrl if file is uploaded
+    }
+
+    const newPost = new PostModel(postData);
     await newPost.save();
+
     await createNeighborhoodNotification({
       type: 'post',
       actorId: req.user._id,
@@ -58,12 +84,17 @@ router.post('/', async (req, res) => {
         postTitle: newPost.title
       }
     });
-    res.status(201).json(newPost);
+
+    const populatedPost = await PostModel.findById(newPost._id)
+      .populate('createdBy', 'name profilePic')
+      .populate('likes', 'name');
+
+    res.status(201).json(populatedPost);
   } catch (error) {
     console.error('Full post creation error:', error);
     res.status(500).json({ 
       message: 'Error creating post', 
-      fullError: error 
+      fullError: error.message 
     });
   }
 });

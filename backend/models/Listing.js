@@ -18,9 +18,19 @@ const listingSchema = new mongoose.Schema({
     enum: ['paid', 'free'],
     required: true 
   },
+  image: {
+    data: Buffer,
+    contentType: String
+  },
   imageUrl: { 
     type: String,
-    required: true
+    validate: {
+      validator: function(v) {
+        // Either imageUrl or image should be present, but not both
+        return !(this.image && this.image.data && v);
+      },
+      message: 'Cannot have both image upload and image URL'
+    }
   },
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId, 

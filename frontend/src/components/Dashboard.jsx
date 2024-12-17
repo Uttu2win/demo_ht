@@ -126,14 +126,22 @@ const Dashboard = () => {
 const handleCreatePost = async (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
-  const postData = {
-    title: formData.get('title'),
-    content: formData.get('content'),
-    category: formData.get('category'),
-    imageUrl: formData.get('imageUrl') || ''
-  };
+  const postData = new FormData();
+  
+  postData.append('title', formData.get('title'));
+  postData.append('content', formData.get('content'));
+  postData.append('category', formData.get('category'));
+  
+  const imageFile = formData.get('image');
+  const imageUrl = formData.get('imageUrl');
+  
+  if (imageFile && imageFile.size > 0) {
+    postData.append('image', imageFile);
+  } else if (imageUrl) {
+    postData.append('imageUrl', imageUrl);
+  }
 
-  setPendingPost(postData);
+  setPendingPost(Object.fromEntries(postData));
   setIsModalOpen(true);
 };
 
@@ -262,6 +270,16 @@ const handleAddComment = async (postId, commentText) => {
       return `http://localhost:8000/api/users/profile/picture/${userId}`;
     };
 
+    const getPostImageUrl = () => {
+      if (post.imageUrl) {
+        return post.imageUrl;
+      }
+      if (post.image && post.image.data) {
+        return `http://localhost:8000/api/posts/${post._id}/image`;
+      }
+      return null;
+    };
+
     const renderContent = () => {
       if (showFullContent || post.content.length <= MAX_CONTENT_LENGTH) {
         return post.content;
@@ -307,14 +325,17 @@ const handleAddComment = async (postId, commentText) => {
           </p>
   
           {/* Post image */}
-          {post.imageUrl && (
-            <img 
-              src={post.imageUrl} 
-              alt={post.title || 'Post Image'} 
-              className="post-image" 
-            />
-          )}
-        </div>
+          {getPostImageUrl() && (
+          <img 
+            src={getPostImageUrl()}
+            alt={post.title || 'Post Image'} 
+            className="post-image"
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/300x200?text=Error+Loading+Image';
+            }}
+          />
+        )}
+      </div>
   
         {/* Interactions section */}
         <div className="post-interactions">
@@ -443,16 +464,39 @@ const handleAddComment = async (postId, commentText) => {
                 <option value="Events">Events</option>
                 <option value="Announcements">Announcements</option>
                 <option value="News">News</option>
-                <option value="Sale">Sale</option>
                 <option value="ForSaleFree">For Sale & Free</option>
                 <option value="LostAndFound">Lost and Found</option>
                 <option value="Services">Services</option>
               </select>
-              <input 
-                type="text" 
-                placeholder="Image URL (optional)" 
-                name="imageUrl" 
-              />
+              <div className="image-input-group">
+          <label>Add Image:</label>
+          <input 
+            type="file" 
+            name="image" 
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                // Clear image URL if file is selected
+                const urlInput = e.target.form.querySelector('input[name="imageUrl"]');
+                if (urlInput) urlInput.value = '';
+              }
+            }}
+          />
+          <div className="separator">OR</div>
+          <input 
+            type="text" 
+            placeholder="Image URL (optional)" 
+            name="imageUrl"
+            onChange={(e) => {
+              if (e.target.value) {
+                // Clear file input if URL is entered
+                const fileInput = e.target.form.querySelector('input[name="image"]');
+                if (fileInput) fileInput.value = '';
+              }
+            }}
+          />
+        </div>
               <button type="submit">Post</button>
             </form>
           </div>
