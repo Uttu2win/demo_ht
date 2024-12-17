@@ -178,3 +178,28 @@ export const deleteNotification = async (notificationId) => {
     throw error;
   }
 };
+
+export const getPostImageUrl = async (post) => {
+  if (!post) return null;
+  
+  // If it's an external URL, try to proxy it through our backend
+  if (post.imageUrl) {
+    try {
+      const response = await fetch(post.imageUrl);
+      if (response.ok) {
+        return post.imageUrl;
+      }
+    } catch (error) {
+      console.warn('External image failed to load:', error);
+    }
+    // If external URL fails, return null to trigger fallback
+    return null;
+  }
+  
+  // If it's a buffer image, return the backend URL with auth token
+  if (post._id) {
+    return `/posts/${post._id}/image`;
+  }
+  
+  return null;
+};

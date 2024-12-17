@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPost, fetchPosts, likePost,addComment } from '../services/api.js';
+import { createPost, fetchPosts, likePost,addComment, getPostImageUrl } from '../services/api.js';
 import PostConfirmationModal from './PostConfirmationModal.jsx';
 import ForSaleFree from './ForSaleFree/ForSaleFree.jsx';
 import Notifications from './Notifications.jsx';
@@ -250,52 +250,266 @@ const handleAddComment = async (postId, commentText) => {
     ));
   };
 
-  const PostCard = ({ post, onLike, onComment }) => {
-    const [showFullContent, setShowFullContent] = useState(false);
-    const [showComments, setShowComments] = useState(false);
-    const [newComment, setNewComment] = useState('');
-  
-    const MAX_CONTENT_LENGTH = 200;
-  
-    const toggleContent = () => setShowFullContent(!showFullContent);
-    const toggleComments = () => setShowComments(!showComments);
+//   const PostCard = ({ post, onLike, onComment }) => {
+//     const [showFullContent, setShowFullContent] = useState(false);
+//     const [showComments, setShowComments] = useState(false);
+//     const [newComment, setNewComment] = useState('');
+//     const [imageUrl, setImageUrl] = useState(null);
 
-    const handleCommentSubmit = () => {
-      if (!newComment.trim()) return;
-      handleAddComment(post._id, newComment);
-      setNewComment('');
-    };
+//     const MAX_CONTENT_LENGTH = 200;
   
-    const getProfilePicUrl = (userId) => {
-      return `http://localhost:8000/api/users/profile/picture/${userId}`;
+//     const toggleContent = () => setShowFullContent(!showFullContent);
+//     const toggleComments = () => setShowComments(!showComments);
+
+//     const handleCommentSubmit = () => {
+//       if (!newComment.trim()) return;
+//       handleAddComment(post._id, newComment);
+//       setNewComment('');
+//     };
+  
+//     const getProfilePicUrl = (userId) => {
+//       return userId ? `http://localhost:8000/api/users/profile/picture/${userId}` : null;
+//     };
+
+//     useEffect(() => {
+//       const loadImage = async () => {
+//         try {
+//           if (post.imageUrl) {
+//             // For external URLs, try loading directly first
+//             const img = new Image();
+//             img.src = post.imageUrl;
+//             await new Promise((resolve, reject) => {
+//               img.onload = resolve;
+//               img.onerror = reject;
+//             });
+//             setImageUrl(post.imageUrl);
+//           } else if (post._id) {
+//             // For buffer images, use the backend URL with auth token
+//             const token = localStorage.getItem('token');
+//             const response = await fetch(
+//               `http://localhost:8000/api/posts/${post._id}/image`,
+//               {
+//                 headers: {
+//                   Authorization: `Bearer ${token}`
+//                 }
+//               }
+//             );
+//             if (response.ok) {
+//               const blob = await response.blob();
+//               setImageUrl(URL.createObjectURL(blob));
+//             }
+//           }
+//         } catch (error) {
+//           console.warn('Image load error for post:', post._id);
+//           setImageUrl('https://via.placeholder.com/300x200?text=Image+Not+Available');
+//         }
+//       };
+  
+//       if ((post.imageUrl || (post.image && post.image.data)) && !imageUrl) {
+//         loadImage();
+//       }
+//     }, [post]);
+
+//     const renderContent = () => {
+//       if (showFullContent || post.content.length <= MAX_CONTENT_LENGTH) {
+//         return post.content;
+//       }
+//       return `${post.content.substring(0, MAX_CONTENT_LENGTH)}...`;
+//     };
+  
+//     // Add null checks for post and nested objects
+//     if (!post || !post.createdBy) {
+//       return null; // or a placeholder/error component
+//     }
+  
+//     const postImageUrl = getPostImageUrl();
+
+//     return (
+//       <div className="post-card">
+//       <div className="post-header">
+//       <img 
+//           src={getProfilePicUrl(post.createdBy._id)}
+//           alt={post.createdBy?.name} 
+//           className="profile-pic"
+//           onError={(e) => {
+//             e.target.src = 'https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png';
+//           }}
+//         />
+//         <div>
+//           <span className="post-author">{post.createdBy?.name}</span>
+//           <span className="post-timestamp">{formatTimeAgo(post.createdAt)}</span>
+//         </div>
+//       </div>
+  
+//         {/* Post content */}
+//         <div className="post-content">
+//           <h3>{post.title || 'Untitled Post'}</h3>
+//           <p>
+//             {renderContent()}
+//             {post.content && post.content.length > MAX_CONTENT_LENGTH && (
+//               <button 
+//                 onClick={toggleContent} 
+//                 className="see-more-btn"
+//               >
+//                 {showFullContent ? 'See Less' : 'See More'}
+//               </button>
+//             )}
+//           </p>
+  
+//           {/* Post image */}
+//           {postImageUrl && !imageError && (
+//           <div className="post-image-container">
+//           {imageUrl && (
+//         <img 
+//           src={imageUrl}
+//           alt={post.title || 'Post Image'} 
+//           className="post-image"
+//           onError={(e) => {
+//             e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Available';
+//           }}
+//         />
+//       )}
+//           </div>
+//         )}
+//       </div>
+  
+//         {/* Interactions section */}
+//         <div className="post-interactions">
+//           <div className="like-section">
+//             <button 
+//               onClick={() => handleLikePost(post._id)}
+//               className="like-btn"
+//             >
+//               <span style={{ 
+//                 color: (post.likes && Array.isArray(post.likes) && 
+//                         user && 
+//                         post.likes.some(like => 
+//                           (like._id || like) === user._id
+//                         )) ? 'red' : 'black' 
+//               }}>
+//                 👍 {post.likes ? post.likes.length : 0}
+//               </span>
+//             </button>
+//           </div>
+//         </div>
+  
+//         <div className="post-comments-section">
+//         <div className="comment-input-container">
+//           <input 
+//             type="text"
+//             placeholder="Write a comment..."
+//             value={newComment}
+//             onChange={(e) => setNewComment(e.target.value)}
+//             onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
+//           />
+//           <button onClick={handleCommentSubmit} className="comment-send-btn">
+//             <Send size={20} />
+//           </button>
+//         </div>
+  
+//           {/* Comments toggle */}
+//           <button onClick={() => setShowComments(!showComments)} className="view-comments-btn">
+//           <MessageCircle size={20} />
+//           {post.comments?.length || 0} Comments
+//         </button>
+
+//         {showComments && (
+//           <div className="comments-list">
+//             {post.comments?.map((comment, index) => (
+//               <div key={index} className="comment-item">
+//               <img 
+//                   src={getProfilePicUrl(comment.userId?._id)}
+//                   alt={comment.userName} 
+//                   className="comment-profile-pic"
+//                   onError={(e) => {
+//                     e.target.src = 'https://www.pngarts.com/files/10/Default-Profile-Picture-PNG-Free-Download.png';
+//                   }}
+//                 />
+//                 <div className="comment-content">
+//                   <span className="comment-author">{comment.userName}</span>
+//                   <p>{comment.text}</p>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// };
+
+const PostCard = ({ post, onLike, onComment }) => {
+  const [showFullContent, setShowFullContent] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [imageUrl, setImageUrl] = useState(null);
+  const [imageLoadError, setImageLoadError] = useState(false);
+
+  const MAX_CONTENT_LENGTH = 200;
+
+  const toggleContent = () => setShowFullContent(!showFullContent);
+  const toggleComments = () => setShowComments(!showComments);
+
+  const handleCommentSubmit = () => {
+    if (!newComment.trim()) return;
+    handleAddComment(post._id, newComment);
+    setNewComment('');
+  };
+
+  const getProfilePicUrl = (userId) => {
+    return userId ? `http://localhost:8000/api/users/profile/picture/${userId}` : null;
+  };
+
+  useEffect(() => {
+    const loadImage = async () => {
+      try {
+        setImageLoadError(false);
+        if (post.imageUrl) {
+          setImageUrl(post.imageUrl);
+        } else if (post._id && post.image && post.image.data) {
+          const token = localStorage.getItem('token');
+          const response = await fetch(
+            `http://localhost:8000/api/posts/${post._id}/image`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
+          if (response.ok) {
+            const blob = await response.blob();
+            setImageUrl(URL.createObjectURL(blob));
+          } else {
+            throw new Error('Failed to load image');
+          }
+        }
+      } catch (error) {
+        console.warn('Image load error for post:', post._id);
+        setImageLoadError(true);
+        setImageUrl('https://via.placeholder.com/300x200?text=Image+Not+Available');
+      }
     };
 
-    const getPostImageUrl = () => {
-      if (post.imageUrl) {
-        return post.imageUrl;
-      }
-      if (post.image && post.image.data) {
-        return `http://localhost:8000/api/posts/${post._id}/image`;
-      }
-      return null;
-    };
-
-    const renderContent = () => {
-      if (showFullContent || post.content.length <= MAX_CONTENT_LENGTH) {
-        return post.content;
-      }
-      return `${post.content.substring(0, MAX_CONTENT_LENGTH)}...`;
-    };
-  
-    // Add null checks for post and nested objects
-    if (!post || !post.createdBy) {
-      return null; // or a placeholder/error component
+    if ((post.imageUrl || (post.image && post.image.data)) && !imageUrl) {
+      loadImage();
     }
-  
-    return (
-      <div className="post-card">
+  }, [post]);
+
+  const renderContent = () => {
+    if (showFullContent || post.content.length <= MAX_CONTENT_LENGTH) {
+      return post.content;
+    }
+    return `${post.content.substring(0, MAX_CONTENT_LENGTH)}...`;
+  };
+
+  if (!post || !post.createdBy) {
+    return null;
+  }
+
+  return (
+    <div className="post-card">
       <div className="post-header">
-      <img 
+        <img 
           src={getProfilePicUrl(post.createdBy._id)}
           alt={post.createdBy?.name} 
           className="profile-pic"
@@ -308,56 +522,54 @@ const handleAddComment = async (postId, commentText) => {
           <span className="post-timestamp">{formatTimeAgo(post.createdAt)}</span>
         </div>
       </div>
-  
-        {/* Post content */}
-        <div className="post-content">
-          <h3>{post.title || 'Untitled Post'}</h3>
-          <p>
-            {renderContent()}
-            {post.content && post.content.length > MAX_CONTENT_LENGTH && (
-              <button 
-                onClick={toggleContent} 
-                className="see-more-btn"
-              >
-                {showFullContent ? 'See Less' : 'See More'}
-              </button>
-            )}
-          </p>
-  
-          {/* Post image */}
-          {getPostImageUrl() && (
+
+      <div className="post-content">
+        <h3>{post.title || 'Untitled Post'}</h3>
+        <p>
+          {renderContent()}
+          {post.content && post.content.length > MAX_CONTENT_LENGTH && (
+            <button 
+              onClick={toggleContent} 
+              className="see-more-btn"
+            >
+              {showFullContent ? 'See Less' : 'See More'}
+            </button>
+          )}
+        </p>
+
+        {!imageLoadError && imageUrl && (
           <img 
-            src={getPostImageUrl()}
+            src={imageUrl}
             alt={post.title || 'Post Image'} 
             className="post-image"
             onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/300x200?text=Error+Loading+Image';
+              setImageLoadError(true);
+              e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Available';
             }}
           />
         )}
       </div>
-  
-        {/* Interactions section */}
-        <div className="post-interactions">
-          <div className="like-section">
-            <button 
-              onClick={() => handleLikePost(post._id)}
-              className="like-btn"
-            >
-              <span style={{ 
-                color: (post.likes && Array.isArray(post.likes) && 
-                        user && 
-                        post.likes.some(like => 
-                          (like._id || like) === user._id
-                        )) ? 'red' : 'black' 
-              }}>
-                👍 {post.likes ? post.likes.length : 0}
-              </span>
-            </button>
-          </div>
+
+      <div className="post-interactions">
+        <div className="like-section">
+          <button 
+            onClick={() => handleLikePost(post._id)}
+            className="like-btn"
+          >
+            <span style={{ 
+              color: (post.likes && Array.isArray(post.likes) && 
+                      user && 
+                      post.likes.some(like => 
+                        (like._id || like) === user._id
+                      )) ? 'red' : 'black' 
+            }}>
+              👍 {post.likes ? post.likes.length : 0}
+            </span>
+          </button>
         </div>
-  
-        <div className="post-comments-section">
+      </div>
+
+      <div className="post-comments-section">
         <div className="comment-input-container">
           <input 
             type="text"
@@ -370,9 +582,8 @@ const handleAddComment = async (postId, commentText) => {
             <Send size={20} />
           </button>
         </div>
-  
-          {/* Comments toggle */}
-          <button onClick={() => setShowComments(!showComments)} className="view-comments-btn">
+
+        <button onClick={toggleComments} className="view-comments-btn">
           <MessageCircle size={20} />
           {post.comments?.length || 0} Comments
         </button>
@@ -381,7 +592,7 @@ const handleAddComment = async (postId, commentText) => {
           <div className="comments-list">
             {post.comments?.map((comment, index) => (
               <div key={index} className="comment-item">
-              <img 
+                <img 
                   src={getProfilePicUrl(comment.userId?._id)}
                   alt={comment.userName} 
                   className="comment-profile-pic"
@@ -401,7 +612,6 @@ const handleAddComment = async (postId, commentText) => {
     </div>
   );
 };
-
 
   const renderContent = () => {
     switch (currentView) {

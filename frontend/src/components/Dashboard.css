@@ -439,5 +439,43 @@
     max-width: 100%;
     height: auto;
     border-radius: 8px;
-    margin-top: 10px;
+    transition: opacity 0.3s ease;
+    display: block;
+  }
+
+  .post-image-container {
+    position: relative;
+    width: 100%;
+    margin-top: 15px;
+    min-height: 100px; /* Minimum height to prevent layout shifts */
+  }
+  
+  .image-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    color: #666;
+  }
+  
+  
+  
+  .post-image.loading {
+    opacity: 0;
+  }
+  
+  .post-image:not(.loading) {
+    opacity: 1;
+  }
+  
+  /* Prevent image overflow */
+  .post-image {
+    max-height: 600px;
+    object-fit: contain;
   }

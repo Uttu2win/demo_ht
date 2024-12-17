@@ -39,12 +39,16 @@ router.get('/', async (req, res) => {
 
   
 // Get post image
-router.get('/:id/image', async (req, res) => {
+router.get('/:id/image', protect, async (req, res) => {
   try {
     const post = await PostModel.findById(req.params.id);
     if (!post || !post.image || !post.image.data) {
       return res.status(404).send('No image found');
     }
+    
+    // Add CORS headers
+    res.set('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.set('Access-Control-Allow-Credentials', 'true');
     res.set('Content-Type', post.image.contentType);
     res.send(post.image.data);
   } catch (error) {
